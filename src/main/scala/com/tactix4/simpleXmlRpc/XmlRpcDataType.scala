@@ -1,4 +1,6 @@
 package com.tactix4.simpleXmlRpc
+
+import _root_.util.XmlRpcUtils
 import java.text.SimpleDateFormat
 import java.util.{TimeZone, Date}
 import scala.xml.{Elem, NodeSeq}
@@ -30,22 +32,13 @@ case class XmlRpcString(value: String) extends XmlRpcDataType{
 }
 
 case class XmlRpcDouble(value: Double) extends  XmlRpcDataType{
- type T = Double
+  type T = Double
   def toXml : NodeSeq = {<value><double>{value}</double></value>}
 }
 
 case class XmlRpcDateTime(value: Date) extends  XmlRpcDataType{
- type T = Date
-
-  private def getDateAsString = {
-    val tz = TimeZone.getTimeZone("UTC");
-    val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-    df.setTimeZone(tz);
-    df.format(value);
-  }
-
-  def toXml : NodeSeq = {<value><date>{getDateAsString}</date></value>}
-
+  type T = Date
+  def toXml : NodeSeq = {<value><date>{XmlRpcUtils.getDateAsISO8601String(value)}</date></value>}
 }
 
 case class XmlRpcBase64(value: String) extends XmlRpcDataType{

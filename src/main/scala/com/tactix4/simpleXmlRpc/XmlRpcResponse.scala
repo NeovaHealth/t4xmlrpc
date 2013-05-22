@@ -31,7 +31,8 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
     val faultCode : String = unescape(faultValues(0).text)
     val faultString : String = unescape(faultValues(1).text)
 
-  override def toString : String  = "Fault Code: " + faultCode + "\nFault String: " + faultString
+    override def toString : String  = "Fault Code: " + faultCode + "\nFault String: " + faultString
+
 }
 
 /**
