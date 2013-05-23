@@ -2,6 +2,7 @@ package com.tactix4.simpleXmlRpc
 
 import _root_.util.XmlRpcUtils
 import scala.xml.{Node, Elem}
+import org.apache.commons.codec.binary.Base64
 
 /**
  * @author max@tactix4.com
@@ -64,7 +65,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
       case <int>{contents}</int>           => XmlRpcInt(contents.text.toInt)
       case <i4>{contents}</i4>             => XmlRpcInt(contents.text.toInt)
       case <double>{contents}</double>     => XmlRpcDouble(contents.text.toDouble)
-      case <base64>{contents}</base64>     => XmlRpcBase64(unescape(contents.text))
+      case <base64>{contents}</base64>     => XmlRpcBase64(Base64.decodeBase64(contents.text))
       case <date>{contents}</date>         => XmlRpcDateTime(XmlRpcUtils.getDateFromISO8601String(contents.text))
       case <boolean>{contents}</boolean>   => XmlRpcBoolean(if(contents.text.equals("0")) false else true)
       case <array>{contents @_*}</array>   => {

@@ -11,14 +11,15 @@ import scala.xml.parsing.ConstructingParser
  * Created by max@tactix4.com
  * 5/21/13
  */
-class XmlRpcClient(val config: XmlRpcConfig) {
+object XmlRpcClient {
 
-  def request(methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponse] = request(methodName, params.toList)
 
-  def request(methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponse] = {
+  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
+
+  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponse] = {
 
     val request = new XmlRpcRequest(methodName, params)
-    val builder = url(config.serverUrl)
+    val builder = url(config.getUrl)
     builder <:< Map("Content-Type" -> "text/xml")
     builder << config.headers
     builder.setBody(request.toString)
