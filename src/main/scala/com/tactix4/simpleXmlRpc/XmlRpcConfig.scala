@@ -5,22 +5,25 @@ package com.tactix4.simpleXmlRpc
  * 5/21/13
  */
 
-class XmlRpcConfig (val protocol :RPCProtocol.Value, val host: String, val port: Int,  val path: String,val headers: Map[String, String]=Map()){
-  require(path.startsWith("/"))
-  require(port > 0 && port < 65535)
-
-  def getUrl : String = protocol + "://" + host + ":" + port + path
+class XmlRpcConfig (val protocol :RPCProtocol.Value, val host: String, val port: Int,  var path: String,val headers: Map[String, String]){
+  def getUrl : String = protocol.toString + "://" + host + ":" + port + path
 
 }
 
 object XmlRpcConfig{
-  def apply(protocol :RPCProtocol.Value, host: String, port: Int,  path: String,headers: Map[String, String]=Map()) = {
-    new XmlRpcConfig(protocol,host,port,path,headers)
+
+  def apply(protocol: RPCProtocol.Value, host: String, port: Int,path: String,headers: Map[String, String]=Map()) = {
+      new XmlRpcConfig(protocol,host,port,path,headers)
   }
 }
 
 
 object RPCProtocol extends Enumeration {
+  implicit def stringToRpcProtocol(s:String) : RPCProtocol.Value = s.toLowerCase match{
+    case "http" => RPC_HTTP
+    case "https"=> RPC_HTTPS
+    case x => throw new XmlRpcUnsupportedProtocolException("protocol: " + x + " not supported")
+  }
   val RPC_HTTP = Value("http")
   val RPC_HTTPS = Value("https")
 }

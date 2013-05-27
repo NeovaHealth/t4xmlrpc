@@ -8,7 +8,7 @@ import org.scalatest.FunSuite
  */
 class XmlRpcResponseFaultTest extends FunSuite {
 
-  val faultCode = 4
+  val faultCode = "4"
   val faultString = "Too many parameters"
   val fault = <methodResponse>
    <fault>

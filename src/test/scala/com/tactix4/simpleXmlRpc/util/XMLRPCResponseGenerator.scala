@@ -1,74 +1,129 @@
 package com.tactix4.simpleXmlRpc.util
 
-import _root_.util.XmlRpcUtils
-import java.text.SimpleDateFormat
-import java.util.{TimeZone, Date}
-import org.scalacheck.Gen
+import org.scalacheck.Gen._
 import scala.xml.{Elem, Node}
 import org.scalacheck._
 import org.scalacheck.Arbitrary._
-import org.scalacheck.Prop._/**
+
+/**
  * @author max@tactix4.com
  *         5/22/13
  */
 
-//TODO: finish add array and struct types - see //http://etorreborre.blogspot.co.uk/2011/02/scalacheck-generator-for-json.html
 object XMLRPCResponseGenerator extends Properties("XML-RPC Reponse generator") {
 
 
+  /**
+   * Generate Valid parameters...
+   * @return
+   */
+  def rDouble: Gen[Elem]    = for {d <- arbDouble.arbitrary}    yield <value><double>{d}</double></value>
+  def rInt: Gen[Elem]       = for {i <- arbInt.arbitrary}       yield <value><int>{i}</int></value>
+  def rBoolean: Gen[Elem]   = for {b <- Gen.oneOf(0, 1)}        yield <value><boolean>{b}</boolean></value>
+  def rString: Gen[Elem]    = for {s <- arbString.arbitrary}    yield <value><string>{s}</string></value>
+  def rB64: Gen[Elem]       = for {b64 <- arbString.arbitrary}  yield <value><base64>{b64}</base64></value>
+  def rDate: Gen[Elem]      = for {date <- arbDate.arbitrary}   yield <value><date>{XmlRpcUtils.getDateAsISO8601String(date)}</date></value>
+  def rStruct : Gen[Elem] = for {
+    n <- choose(1,3)
+    m :Seq[Gen[Elem]] <- pickNGen(n)
+  } yield <value><struct>{m.map((gen: Gen[Elem]) => <member><name>{arbString.arbitrary.sample.get}</name>{gen.sample.get}</member>)}</struct></value>
+  def rArray : Gen[Elem] = for {
+    n <- choose(1, 3)
+    m :Seq[Gen[Elem]] <-  pickNGen(n)
+  } yield <value><array><data>{m.map(_.sample.get)}</data></array></value>
 
-    val rDouble: Gen[Elem] = for {d <- arbDouble.arbitrary} yield
-      <value>
-        <double>
-          {d}
-        </double>
-      </value>
-    val rInt: Gen[Elem] = for {i <- arbInt.arbitrary} yield
-      <value>
-        <int>
-          {i}
-        </int>
-      </value>
-    val rBoolean: Gen[Elem] = for {b <- Gen.oneOf(0, 1)} yield <value>
-      <boolean>
-        {b}
-      </boolean>
-    </value>
-    val rString: Gen[Elem] = for {s <- arbString.arbitrary} yield <value>
-      <string>
-        {s}
-      </string>
-    </value>
-    val rB64: Gen[Elem] = for {b64 <- arbString.arbitrary} yield <value>
-      <base64>
-        {b64}
-      </base64>
-    </value>
-    val rDate: Gen[Elem] = for {date <- arbDate.arbitrary} yield <value>
-      <date>
-        {XmlRpcUtils.getDateAsISO8601String(date)}
-      </date>
-    </value>
+  def pickNGen(n: Int) = pick(n, List(rDouble, rInt, rBoolean, rString, rB64, rDate, rArray,rStruct))
 
 
-    lazy val types: List[Gen[Elem]] = List(rDouble, rInt, rBoolean, rString, rB64, rDate)
+  def randParam: Gen[Seq[Node]] = for {
+    n <- choose(1,5)
+    t <- pickNGen(n)
+  } yield  t.map(x => <param>{x.sample.get}</param>)
+
+  def randomValidRequestGen: Gen[Node] = for {
+    p <- Gen.listOf(randParam)
+  } yield <methodResponse><params>{p}</params></methodResponse>
 
 
-    val randParam: Gen[Seq[Node]] = for {
-      t <- Gen.someOf(types)
-    } yield {
-      t map (x => <param>
-        {x.sample.get}
-      </param>)
-    }
+  /**
+   * Generate InValid parameters
+   * @return
+   */
+  def rIDouble : Gen[Elem]  = for { p <- oneOf(rICDouble, rISDouble,rIS2Double)} yield p
+  def rICDouble: Gen[Elem]    = for {d <- oneOf(rString, rB64, rDate)}    yield <value><double>{d}</double></value>
+  def rISDouble: Gen[Elem]    = for {d <- arbDouble.arbitrary}    yield <valua><double>{d}</double></valua>
+  def rIS2Double: Gen[Elem]    = for {d <- arbDouble.arbitrary}    yield <value><doouble>{d}</doouble></value>
 
-    val randomRequestGen: Gen[Node] = for {
-      p <- Gen.listOf(randParam)
-    } yield <methodResponse>
-        <params>
-          {p}
-        </params>
-      </methodResponse>
+  def rIInt: Gen[Elem]       = for {i <- oneOf(rICInt, rISInt, rIS2Int) } yield i
+  def rICInt: Gen[Elem]    = for{ i<- oneOf(rDate,rString,rB64) } yield <value><int>{i}</int></value>
+  def rISInt: Gen[Elem]    = for{ i<- arbInt.arbitrary } yield <value><intt>{i}</intt></value>
+  def rIS2Int : Gen[Elem]   = for{ i<- arbInt.arbitrary } yield <velue><int>{i}</int></velue>
+
+  def rIBoolean: Gen[Elem]    = for {b <- oneOf(rICBoolean, rISBoolean, rIS2Boolean) }yield b
+  def rICBoolean: Gen[Elem]   = for { b <- oneOf(rDouble, rDate, rString, rB64) }     yield <value><boolean>{b}</boolean></value>
+  def rISBoolean: Gen[Elem]   = for {b <- Gen.oneOf(0, 1)}                            yield <v-alue><boolean>{b}</boolean></v-alue>
+  def rIS2Boolean: Gen[Elem]  = for {b <- Gen.oneOf(0, 1)}                            yield <value><bolean>{b}</bolean></value>
+
+
+  def rIString: Gen[Elem]    = for {s <- oneOf(rICString, rISString, rIS2String) } yield s
+  def rICString: Gen[Elem]    = for {s <- oneOf(rArray,rStruct)}    yield <value><string>{s}</string></value>
+  def rISString: Gen[Elem]    = for {s <- arbString.arbitrary}    yield <value><string><string></string>{s}</string></value>
+  def rIS2String: Gen[Elem]    = for {s <- arbString.arbitrary}    yield <value><int><string>{s}</string></int></value>
+
+
+  def rIB64: Gen[Elem]       = for {b64 <- oneOf(rCIB64,rSIB64,rS2IB64) } yield b64
+  def rCIB64: Gen[Elem]       = for {b64 <- oneOf(rArray,rStruct)}  yield <value><base64>{b64}</base64></value>
+  def rSIB64: Gen[Elem]       = for {b64 <- arbString.arbitrary}  yield <value></value>
+  def rS2IB64: Gen[Elem]       = for {b64 <- arbString.arbitrary}  yield <value><base64><int>42</int></base64></value>
+
+
+  def rIDate: Gen[Elem]      = for {date <- oneOf(rCIDate,rSIDate,rS2IDate) } yield date
+  def rCIDate: Gen[Elem]      = for {date <- arbDate.arbitrary}   yield <value><date>{date}</date></value>
+  def rSIDate: Gen[Elem]      = for {date <- arbDate.arbitrary}   yield <value><date><int></int>{XmlRpcUtils.getDateAsISO8601String(date)}</date></value>
+  def rS2IDate: Gen[Elem]      = for {date <- arbDate.arbitrary}   yield <value><date>2011-02-29T03:44Z</date></value>
+
+  def rIStruct : Gen[Elem] = oneOf(rCIStruct, rSIStruct, rS2IStruct)
+
+def rCIStruct : Gen[Elem] = for {
+    n <- choose(1,3)
+    m :Seq[Gen[Elem]] <- pickNGen(n)
+} yield <value><struct>{m.map((gen: Gen[Elem]) => <member><name>{oneOf(rArray, rStruct).sample.get}</name>{gen.sample.get}</member>)}</struct></value>
+
+  def rSIStruct : Gen[Elem] = for {
+    n <- choose(1,3)
+    m :Seq[Gen[Elem]] <- pickNGen(n)
+} yield <value><struct>{m.map((gen: Gen[Elem]) => <member><uwotmate><name>{arbString.arbitrary.sample.get}</name></uwotmate>{gen.sample.get}</member>)}</struct></value>
+
+  def rS2IStruct : Gen[Elem] = for {
+    n <- choose(1,3)
+    m :Seq[Gen[Elem]] <- pickNGen(n)
+  } yield <value><struct>{m.map((gen: Gen[Elem]) => <member>{arbString.arbitrary.sample.get}{gen.sample.get}</member>)}</struct></value>
+
+  def rIArray : Gen[Elem] = oneOf(rSIArray, rS2IArray)
+
+  def rSIArray : Gen[Elem] = for {
+    n <- choose(1, 3)
+    m :Seq[Gen[Elem]] <-  pickNGen(n)
+  } yield <value><array>{m.map(_.sample.get)}</array></value>
+
+  def rS2IArray : Gen[Elem] = for {
+    n <- choose(1, 3)
+    m :Seq[Gen[Elem]] <-  pickNGen(n)
+  } yield <array><data>{m.map(_.sample.get)}</data></array>
+
+  def pickNIGen(n: Int) = for {
+    x <- pick(1,rIString,rIInt, rIBoolean, rIDouble, rIB64,rIDate,rIStruct,rIArray)
+    y <- pick(n-1,  rDouble, rInt, rBoolean, rString, rB64, rDate, rArray,rStruct)
+  } yield scala.util.Random.shuffle(x++y)
+
+  def randIParam: Gen[Seq[Node]] = for {
+    n <- choose(1,5)
+    t <- pickNIGen(n)
+  } yield  t.map(x => <param>{x}</param>)
+
+  def randomInValidRequestGen: Gen[Node] = for {
+    p <- Gen.listOf(randIParam)
+  } yield <methodResponse><params>{p}</params></methodResponse>
 
 
 }

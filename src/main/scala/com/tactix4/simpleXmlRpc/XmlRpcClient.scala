@@ -20,6 +20,7 @@ object XmlRpcClient {
 
     val request = new XmlRpcRequest(methodName, params)
     val builder = url(config.getUrl)
+
     builder <:< Map("Content-Type" -> "text/xml")
     builder << config.headers
     builder.setBody(request.toString)
@@ -27,11 +28,12 @@ object XmlRpcClient {
     val result = Promise[XmlRpcResponse]()
 
     Http(builder OK as.xml.Elem).onComplete {
+
       // match on the result - failure means dispatch failed at some point
       // success can still be fault or normal response
       // hence the ghetto fault detection
       x => x match {
-        case Failure(e) => throw new XmlRpcClientException("Something went wrong", e)
+        case Failure(e) => result.failure(new XmlRpcClientException("Something went wrong", e))
         case Success(r) => {
           if ((r \\ "fault").length > 0) {
             result.complete(Try(XmlRpcResponseFault(r)))

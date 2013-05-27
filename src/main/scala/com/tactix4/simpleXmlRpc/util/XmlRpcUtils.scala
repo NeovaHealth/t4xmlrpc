@@ -1,4 +1,4 @@
-package util
+package com.tactix4.simpleXmlRpc.util
 
 import java.util.{TimeZone, Date}
 import java.text.{ParseException, SimpleDateFormat}
@@ -18,8 +18,11 @@ object XmlRpcUtils {
     */
   def getDateAsISO8601String(value: Date): String = {
     val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
-    df.setTimeZone(TimeZone.getTimeZone("UTC"));
-    df.format(value);
+    df.setTimeZone(TimeZone.getTimeZone("UTC"))
+    df.setLenient(true)
+    val t = df.format(value)
+    df.format(df.parse(t))
+
   }
 
   /**
@@ -32,6 +35,7 @@ object XmlRpcUtils {
   def getDateFromISO8601String(value: String): Date = {
     val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
     date.setTimeZone(TimeZone.getTimeZone("UTC"))
+    date.setLenient(false)
     try {
       date.parse(value)
     }

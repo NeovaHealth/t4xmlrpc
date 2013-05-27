@@ -1,6 +1,6 @@
 package com.tactix4.simpleXmlRpc
 
-import _root_.util.XmlRpcUtils
+import util.XmlRpcUtils
 import java.util.Date
 import scala.xml.Elem
 
@@ -10,7 +10,7 @@ import org.apache.commons.codec.binary.Base64
 /**
  * Superclass of all XML-RPC types
  */
-trait XmlRpcDataType {
+sealed trait XmlRpcDataType {
   type T
   val value : T
   def toXml : NodeSeq
@@ -42,25 +42,29 @@ case class XmlRpcDateTime(value: Date) extends  XmlRpcDataType{
 }
 
 case class XmlRpcBase64(value: Array[Byte]) extends XmlRpcDataType{
-  require(Base64.isArrayByteBase64(value), "Value does not appear to be a valid base64 encoded string")
   type T = Array[Byte]
-  def toXml : NodeSeq = {<value><base64>{Base64.encodeBase64String(value)}</base64></value>}
+  def toXml : NodeSeq = {<value><base64>{new String(value)}</base64></value>}
 }
 
 case class XmlRpcStruct(value: List[(String, XmlRpcDataType)]) extends XmlRpcDataType{
   type T = List[(String, XmlRpcDataType)]
-  private def outputStruct(k: String, v: XmlRpcDataType) : Elem ={
-    <value><struct><member><name>{k}</name>{v.toXml}</member></struct></value>
+
+  private def outputStruct(t: ( String, XmlRpcDataType)) : NodeSeq={
+    <member><name>{t._1}</name>{t._2.toXml}</member>
   }
-  def toXml : NodeSeq = {
-    value.map((elem: (String, XmlRpcDataType)) => outputStruct(elem._1, elem._2)).reduce((a: NodeSeq, b: NodeSeq) => a ++ b)
-  }
+
+  def add(name:String, data: XmlRpcDataType) = XmlRpcStruct((name,data)::value)
+
+  def toXml = <value><struct>{value.map(outputStruct(_)).reduce( _ ++ _ )}</struct></value>
+
 }
 
 case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType{
   type T = List[XmlRpcDataType]
 
+  def add(that: XmlRpcDataType) = XmlRpcArray(that::value)
+
   def this(values: XmlRpcDataType*) = this(values.toList)
 
-  def toXml : NodeSeq = <value><array><data>{value.map((v: XmlRpcDataType) => v.toXml).reduce((a: NodeSeq, b: NodeSeq) => a ++ b)  }</data></array></value>
+  def toXml = <value><array><data>{value.map(_.toXml).reduce(_ ++ _)  }</data></array></value>
 }
