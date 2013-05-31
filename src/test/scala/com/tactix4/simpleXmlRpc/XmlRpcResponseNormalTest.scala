@@ -13,8 +13,10 @@ import com.tactix4.simpleXmlRpc.util.XMLRPCResponseGenerator
  */
 class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
 
+  implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 500)
+
   test("internal representation should match input") {
-    forAll(XMLRPCResponseGenerator.randomValidRequestGen) {
+    forAll(XMLRPCResponseGenerator.randomValidResponseGen) {
       (node: Node) => {
         val input = node
         val output = XmlRpcResponseNormal(node).toNode
@@ -24,7 +26,7 @@ class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
   }
 
   test("should throw exceptions on invalid input") {
-    forAll(XMLRPCResponseGenerator.randomInValidRequestGen){
+    forAll(XMLRPCResponseGenerator.randomInValidResponseGen){
       (node: Node) =>
         if(node.descendant.length < 2) true // dont test the empty messages - we'll accept them
         else {
