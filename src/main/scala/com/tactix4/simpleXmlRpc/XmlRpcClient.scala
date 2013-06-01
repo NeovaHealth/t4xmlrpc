@@ -6,6 +6,7 @@ import scala.concurrent.Promise
 import scala.xml.{Source, XML, Unparsed, Elem}
 import scala.util.{Try, Success, Failure}
 import scala.xml.parsing.ConstructingParser
+import scalaz.NonEmptyList
 
 /**
  * Created by max@tactix4.com
@@ -36,7 +37,9 @@ object XmlRpcClient {
         case Failure(e) => result.failure(new XmlRpcClientException("Something went wrong", e))
         case Success(r) => {
           if ((r \\ "fault").length > 0) {
-            result.complete(Try(XmlRpcResponseFault(r)))
+            XmlRpcResponseFault(r).fold(
+              (errors: NonEmptyList[String])  => result.failure(new XmlRpcClientException("Something went wrong: " + errors)),
+              (fault: XmlRpcResponseFault)    => result.complete(Try(fault)) )
           } else {
             result.complete(Try(XmlRpcResponseNormal(r)))
           }

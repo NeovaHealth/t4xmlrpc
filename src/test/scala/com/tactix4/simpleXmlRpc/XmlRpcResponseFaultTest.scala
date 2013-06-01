@@ -5,6 +5,7 @@ import org.scalatest.prop.PropertyChecks
 import org.scalatest.matchers.ShouldMatchers._
 import com.tactix4.simpleXmlRpc.util.XMLRPCResponseGenerator
 import scala.xml.Node
+import scalaz.NonEmptyList
 
 /**
  * @author max@tactix4.com
@@ -19,18 +20,20 @@ class XmlRpcResponseFaultTest extends FunSuite with PropertyChecks{
     forAll(XMLRPCResponseGenerator.randomValidFaultGen){
       (node: Node) =>
       val input = scala.xml.Utility.trim(node)
-        val output = XmlRpcResponseFault(node).toNode
-        input should equal(output)
+        val output = XmlRpcResponseFault(node)
+        output.fold(
+          (list: NonEmptyList[String]) => fail(list.toString()),
+          (fault: XmlRpcResponseFault) => input should equal(fault.toNode))
     }
   }
 
-  test("Throw exceptions on Invalid Faults") {
+  test("Fail on Invalid Faults") {
     forAll(XMLRPCResponseGenerator.randomInValidFaultGen){
       (node: Node) =>
-        intercept[Exception]{
-          XmlRpcResponseFault(node)
-        }
-
+        println(node)
+          val failure = XmlRpcResponseFault(node)
+        println(failure)
+        failure.isFailure
     }
   }
 }
