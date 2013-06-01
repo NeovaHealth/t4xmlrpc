@@ -129,20 +129,22 @@ def rCIStruct : Gen[Elem] = for {
 
 
 
-def rFaultStruct : Gen[Elem] =
-  <value><struct>
+def rFaultStruct : Gen[Elem] = for {
+  c <- rInt
+s <- rString
+} yield  <value><struct>
     <member>
       <name>faultCode</name>
-      {rInt.sample.get}
+      {c.sample.get}
     </member>
     <member>
       <name>faultString</name>
-      {rString.sample.get}
+      {s.sample.get}
     </member>
   </struct>
   </value>
 
-  def rIFaultStruct : Gen[Elem] = oneOf(rIFault1,rIFault2,rIFault3,rIFault4,rIFault5,rIFault6,rIFault7,rIFault8,rIFault9,rIFault10,rIFault11)
+  def rIFaultStruct : Gen[Elem] = for { f <- oneOf(rIFault1,rIFault2,rIFault3,rIFault4,rIFault5,rIFault6,rIFault7,rIFault8,rIFault9,rIFault10,rIFault11)} yield f.sample.get
 
 
   def rIFault1 = <value><struct>
@@ -266,10 +268,14 @@ def rFaultStruct : Gen[Elem] =
       </array>
     </value>
 
-  def randomValidFaultGen: Gen[Node] = <methodResponse><fault>{rFaultStruct.sample.get}</fault></methodResponse>
+  def randomValidFaultGen: Gen[Node] = for {
+    fs <- rFaultStruct
+  }yield <methodResponse><fault>{fs}</fault></methodResponse>
 
 
-  def randomInValidFaultGen: Gen[Node] = <methodResponse><fault>{rIFaultStruct.sample.get}</fault></methodResponse>
+  def randomInValidFaultGen: Gen[Node] = for {
+    ifs <- rIFaultStruct
+  }yield <methodResponse><fault>{ifs}</fault></methodResponse>
 
 
 }

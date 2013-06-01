@@ -20,6 +20,7 @@ class XmlRpcResponseFaultTest extends FunSuite with PropertyChecks{
     forAll(XMLRPCResponseGenerator.randomValidFaultGen){
       (node: Node) =>
       val input = scala.xml.Utility.trim(node)
+      println(node)
         val output = XmlRpcResponseFault(node)
         output.fold(
           (list: NonEmptyList[String]) => fail(list.toString()),
