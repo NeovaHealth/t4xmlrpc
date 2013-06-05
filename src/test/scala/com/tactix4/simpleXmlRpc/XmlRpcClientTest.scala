@@ -11,6 +11,7 @@ import scala.util.{Failure, Success}
 import org.scalatest.concurrent.Futures
 import java.util.concurrent.TimeUnit
 import org.scalatest.time.{Seconds, Span, Millis}
+import com.tactix4.simpleXmlRpc
 
 /**
  * @author max@tactix4.com
@@ -69,9 +70,14 @@ val host = "192.168.1.95"
 
     val uid = 1 // Admin User - bypass login
     val config = XmlRpcConfig("http", "192.168.1.95", 8069, "/xmlrpc/object")
-    val result2 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "read", ("1"))
+    val result2 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "search", XmlRpcArray(List()))
  implicit  def patienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(5, Millis))
-    whenReady(result2){ case response: XmlRpcResponse => println(response)}
+    whenReady(result2){ case response: XmlRpcResponseNormal => {
+      val result3 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "read",response.params.head, XmlRpcArray(List("id","name")))
+      whenReady(result3){ case response: XmlRpcResponseNormal => {
+        println(response)
+      }}
+    }}
 
 
   }
