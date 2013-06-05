@@ -21,3 +21,5 @@ libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.0.1
 libraryDependencies +=  "net.databinder.dispatch" % "dispatch-core_2.10" % "0.10.0"
 
 libraryDependencies +=  "commons-codec" % "commons-codec" % "1.4"
+
+libraryDependencies += "org.clapper" % "grizzled-slf4j_2.10" % "1.0.1"
