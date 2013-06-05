@@ -1,7 +1,7 @@
 package com.tactix4.simpleXmlRpc
 
 import util.XmlRpcUtils
-import scala.xml.Node
+import scala.xml.{Node, Elem}
 import scalaz._
 import Scalaz._
 import scala.util.Try
@@ -29,65 +29,61 @@ trait XmlRpcResponse{
  * http://docs.python.org/2/library/xmlrpclib.html#fault-objects
  * for this reason we allow a string too, hence why faultCode has type Either[XmlRpcString.XmlRpcInt]
  *
+ * @param element the raw xml Elem from the server
  */
 
-object XmlRpcResponseFault{
+case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
 
-  def validFaultCode(node: Option[Node]): Validation[String, FaultCodeType]=  node.getOrElse("faultCode not found") match{
+  val members =  scala.xml.Utility.trim(element) \ "fault" \ "value" \ "struct" \ "member"
+
+  //there should be two members in the struct
+  if(members.length != 2) throw new XmlRpcXmlParseException("Fault struct should contain 2 members")
+
+  //each member should have two children
+  if(members.exists((node: Node) => node.child.length != 2)) throw new XmlRpcXmlParseException("Fault struct member should contain a name and a value")
+
+  //check faultCode and faultString are there
+  if(!(members \ "name").exists(_.text == "faultCode"))throw new XmlRpcXmlParseException("Could not find faultCode")
+  if(!(members \ "name").exists(_.text == "faultString"))throw new XmlRpcXmlParseException("Could not find faultString")
+
+  val faultCodeValueElem = (members.filter { (_ \\ "_" exists (_.text == "faultCode")) } \ "value").head
+
+  val faultCode : Either[XmlRpcString, XmlRpcInt] = faultCodeValueElem match{
+
     case <value><int>{contents}</int></value> =>
-      if (contents.descendant.isEmpty) {
-        val parse = Try(Right(XmlRpcInt(contents.text.toInt)).success[String])
-        parse.getOrElse(("Could not parse " + contents.text + " to Int").fail[FaultCodeType])
-      }
-      else ("unexpected child nodes in faultCode: " + contents).fail[FaultCodeType]
+      if(contents.descendant.isEmpty) Right(XmlRpcInt(contents.text.toInt))
+      else throw new XmlRpcXmlParseException("unexpected child nodes in faultCode: " + contents)
 
     case <value><i4>{contents}</i4></value> =>
-      if (contents.descendant.isEmpty) {
-        val parse = Try(Right(XmlRpcInt(contents.text.toInt)).success[String])
-        parse.getOrElse(("Could not parse " + contents.text + " to Int").fail[FaultCodeType])
-      }
-      else ("unexpected child nodes in faultCode: " + contents).fail[FaultCodeType]
+      if(contents.descendant.isEmpty) Right(XmlRpcInt(contents.text.toInt))
+      else throw new XmlRpcXmlParseException("unexpected child nodes in faultCode: " + contents)
 
     case <value><string>{contents}</string></value> =>
-      if(contents.descendant.isEmpty) {
-        Left(XmlRpcString(contents.text)).success[String]
-      }
-      else ("unexpected child nodes in faultCode: " + contents).fail[FaultCodeType]
+      if(contents.descendant.isEmpty) Left(XmlRpcString(contents.text))
+      else throw new XmlRpcXmlParseException("unexpected child nodes in faultCode: " + contents)
 
     case <value>{unnamedString}</value> =>
-      if(unnamedString.descendant.isEmpty) Left(XmlRpcString(unnamedString.text)).success[String]
-      else ("unexpected child nodes in faultCode: " + unnamedString).fail[FaultCodeType]
+      if(unnamedString.descendant.isEmpty) Left(XmlRpcString(unnamedString.text))
+      else throw new XmlRpcXmlParseException("unexpected child nodes in faultCode: " + unnamedString.text)
 
-    case x  => ("could not parse faultCode value element: " + x).fail[FaultCodeType]
+    case x  => throw new XmlRpcXmlParseException("Could not parse faultCode value element: " + x)
+
   }
 
-  def validFaultString(node: Option[Node]): Validation[String,FaultStringType] = node.getOrElse("faultString not found") match {
+  val faultStringValueElem = (members.filter { (_ \\ "_" exists (_.text == "faultString")) } \ "value" ).head
+  //parse the faultString
+  val faultString : XmlRpcString = faultStringValueElem match {
 
     case <value><string>{contents}</string></value> =>
-      if(contents.descendant.isEmpty) XmlRpcString(contents.text).success[String]
-      else ("unexpected child nodes in faultString: " + contents).fail[FaultStringType]
+      if(contents.descendant.isEmpty) XmlRpcString(contents.text)
+      else throw new XmlRpcXmlParseException("unexpected child nodes in faultString: " + contents)
 
     case <value>{unnamedString}</value> =>
-      if(unnamedString.descendant.isEmpty) XmlRpcString(unnamedString.text,false).success[String]
-      else ("unexpected child nodes in faultString: " + unnamedString).fail[FaultStringType]
+      if(unnamedString.descendant.isEmpty) XmlRpcString(unnamedString.text,false)
+      else throw new XmlRpcXmlParseException("unexpected child nodes in faultString: " + unnamedString)
 
-    case x => ("could not parse faultString: " + x).fail[FaultStringType]
+    case x => throw new XmlRpcXmlParseException("could not parse faultString: " + x)
   }
-
-
-  def validateFault(node: Node) = {
-    val members =  scala.xml.Utility.trim(node) \ "fault" \ "value" \ "struct" \ "member"
-    val faultCode = (members.filter { (_ \\ "_" exists (_.text == "faultCode")) } \ "value").headOption
-    val faultString = (members.filter { (_ \\ "_" exists (_.text == "faultString")) } \ "value" ).headOption
-    (validFaultCode(faultCode).liftFailNel |@| validFaultString(faultString).liftFailNel) {
-      XmlRpcResponseFault(_,_)
-    }
-  }
-
-  def apply(node: Node) : Validation[NonEmptyList[String], XmlRpcResponseFault] = validateFault(node)
-}
-case class XmlRpcResponseFault(faultCode: FaultCodeType, faultString: FaultStringType) extends XmlRpcResponse {
-
 
   override def toString : String  = "Fault Code: " + faultCode + "\nFault String: " + faultString
 

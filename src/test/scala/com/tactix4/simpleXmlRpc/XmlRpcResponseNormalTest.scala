@@ -30,7 +30,6 @@ class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
       (node: Node) =>
         if(node.descendant.length < 2) true // dont test the empty messages - we'll accept them
         else {
-          println(node)
           val e = intercept[java.lang.Exception]{
             XmlRpcResponseNormal(node)
           }
