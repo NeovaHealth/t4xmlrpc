@@ -43,9 +43,9 @@ class XmlRpcClientTest extends FunSuite with Futures{
   val protocol = "http"
 val host = "192.168.1.95"
   val port = 8069
-  val db = "tactix4test"
+  val db = "ww_test3"
   val userId = "admin"
-  val password = "password"
+  val password = "admin"
 
   val commonApi = "/xmlrpc/common"
   val objectApi = "/xmlrpc/object"
@@ -69,7 +69,7 @@ val host = "192.168.1.95"
 
     val uid = 1 // Admin User - bypass login
     val config = XmlRpcConfig("http", "192.168.1.95", 8069, "/xmlrpc/object")
-    val result2 = XmlRpcClient.request(config, "execute", db, uid, password, "res.partner", "read", ("1"))
+    val result2 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "read", ("1"))
  implicit  def patienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(5, Millis))
     whenReady(result2){ case response: XmlRpcResponse => println(response)}
 
