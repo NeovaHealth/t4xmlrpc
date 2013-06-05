@@ -20,7 +20,9 @@ object XMLRPCResponseGenerator extends Properties("XML-RPC Reponse generator") {
   def rDouble: Gen[Elem]    = for {d <- arbDouble.arbitrary}    yield <value><double>{d}</double></value>
   def rInt: Gen[Elem]       = for {i <- arbInt.arbitrary}       yield <value><int>{i}</int></value>
   def rBoolean: Gen[Elem]   = for {b <- Gen.oneOf(0, 1)}        yield <value><boolean>{b}</boolean></value>
-  def rString: Gen[Elem]    = for {s <- arbString.arbitrary}    yield <value><string>{s}</string></value>
+  def rString: Gen[Elem]    = oneOf(rString1,rString2)
+  def rString1: Gen[Elem]    = for {s <- arbString.arbitrary}    yield <value><string>{s}</string></value>
+  def rString2: Gen[Elem]    = for {s <-arbString.arbitrary}     yield <value>{s}</value>
   def rB64: Gen[Elem]       = for {b64 <- arbString.arbitrary}  yield <value><base64>{b64}</base64></value>
   def rDate: Gen[Elem]      = for {date <- arbDate.arbitrary}   yield <value><date>{XmlRpcUtils.getDateAsISO8601String(date)}</date></value>
   def rStruct : Gen[Elem] = for {
@@ -40,7 +42,7 @@ object XMLRPCResponseGenerator extends Properties("XML-RPC Reponse generator") {
     t <- pickNGen(n)
   } yield  t.map(x => <param>{x.sample.get}</param>)
 
-  def randomValidRequestGen: Gen[Node] = for {
+  def randomValidResponseGen: Gen[Node] = for {
     p <- Gen.listOf(randParam)
   } yield <methodResponse><params>{p}</params></methodResponse>
 
@@ -121,9 +123,153 @@ def rCIStruct : Gen[Elem] = for {
     t <- pickNIGen(n)
   } yield  t.map(x => <param>{x}</param>)
 
-  def randomInValidRequestGen: Gen[Node] = for {
+ def randomInValidResponseGen: Gen[Node] = for {
     p <- Gen.listOf(randIParam)
   } yield <methodResponse><params>{p}</params></methodResponse>
+
+
+
+def rFaultStruct : Gen[Elem] =
+  <value><struct>
+    <member>
+      <name>faultCode</name>
+      {rInt.sample.get}
+    </member>
+    <member>
+      <name>faultString</name>
+      {rString.sample.get}
+    </member>
+  </struct>
+  </value>
+
+  def rIFaultStruct : Gen[Elem] = oneOf(rIFault1,rIFault2,rIFault3,rIFault4,rIFault5,rIFault6,rIFault7,rIFault8,rIFault9,rIFault10,rIFault11)
+
+
+  def rIFault1 = <value><struct>
+    <member>
+      <name>faultCode</name>
+      {rDate.sample.get}
+    </member>
+    <member>
+      <name>faultString</name>
+      {rString.sample.get}
+    </member>
+  </struct>
+  </value>
+
+  def rIFault2 = <value><struct>
+    <member>
+      <name>faultCode</name>
+      {rInt.sample.get}
+    </member>
+    <member>
+      {rString.sample.get}
+    </member>
+  </struct>
+  </value>
+
+  def rIFault3 = <value><struct>
+    <member>
+      {rInt.sample.get}
+    </member>
+    <member>
+      <name>faultString</name>
+      {rString.sample.get}
+    </member>
+  </struct>
+  </value>
+
+  def rIFault4 =
+    <value><struct>
+    <member>
+      <name>faultCode</name>
+      {rInt.sample.get}
+      <name>faultCode</name>
+      {rString.sample.get}
+    </member>
+  </struct>
+  </value>
+
+  def rIFault5 =
+    <value>
+      <member>
+        <name>faultCode</name>
+        {rInt.sample.get}
+        </member>
+      <member>
+        <name>faultString</name>
+        {rString.sample.get}
+      </member>
+      <member><name>faultFoo</name>{rString.sample.get}</member>
+    </value>
+  def rIFault6 =
+    <struct>
+      <member>
+        <name>faultCode</name>
+        {rInt.sample.get}
+      </member>
+      <member>
+        <name>faultString</name>
+        {rString.sample.get}
+      </member>
+      </struct>
+  def rIFault7 =
+    <value>
+      <member>
+        <name>faultCode</name>
+        {rInt.sample.get}
+      </member>
+    </value>
+
+  def rIFault8 =
+    <value><struct>
+      <member>
+        <name>faultString</name>
+        {rString.sample.get}
+      </member>
+      </struct>
+    </value>
+
+  def rIFault9 =
+    <value><struct>
+        <name>faultCode</name>
+        {rInt.sample.get}
+      <member>
+        <name>fault string</name>
+        {rString.sample.get}
+      </member>
+    </struct>
+    </value>
+
+  def rIFault10 =
+    <value><struct>
+      <member>
+        <name>{rString.sample.get}</name>
+        {rInt.sample.get}
+      </member>
+      <member>
+        <name>faultString</name>
+        {rString.sample.get}
+      </member>
+    </struct>
+    </value>
+
+
+  def rIFault11 =
+    <value><array>
+      <data>
+        <name>{rString.sample.get}</name>
+        {rInt.sample.get}
+        <name>faultString</name>
+        {rString.sample.get}
+        </data>
+      </array>
+    </value>
+
+  def randomValidFaultGen: Gen[Node] = <methodResponse><fault>{rFaultStruct.sample.get}</fault></methodResponse>
+
+
+  def randomInValidFaultGen: Gen[Node] = <methodResponse><fault>{rIFaultStruct.sample.get}</fault></methodResponse>
 
 
 }

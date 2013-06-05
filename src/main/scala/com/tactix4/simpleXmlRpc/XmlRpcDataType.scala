@@ -26,10 +26,11 @@ case class XmlRpcBoolean(value: Boolean) extends XmlRpcDataType{
   def toXml : NodeSeq  = {<value><boolean>{if(value) 1 else 0}</boolean></value>}
 }
 
-case class XmlRpcString(value: String) extends XmlRpcDataType{
+case class XmlRpcString(value: String, tag : Boolean = true) extends XmlRpcDataType{
   type T = String
-  def toXml : NodeSeq =  {<value><string>{value}</string></value>}
+  def toXml : NodeSeq = if(tag) {<value><string>{value}</string></value>} else {<value>{value}</value>}
 }
+
 
 case class XmlRpcDouble(value: Double) extends  XmlRpcDataType{
   type T = Double
