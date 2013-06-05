@@ -164,7 +164,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
         if(!contents.descendant.isEmpty) throw new XmlRpcXmlParseException("boolean element has subnodes....")
         XmlRpcBoolean(if(contents.text.equals("0")) false else true)
       }
-      case <value><array>{contents @_*}</array></value>   => {
+      case <value><array><data>{contents @_*}</data></array></value>   => {
         val nodes = (node \ "array" \ "data" \ "value" )
         val childs = (node \ "array" \ "data")
         if(childs.length > 1 && nodes.length > 1) throw new XmlRpcXmlParseException("Could not parse array correctly: " + node)

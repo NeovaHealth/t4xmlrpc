@@ -67,5 +67,5 @@ case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType{
 
   def this(values: XmlRpcDataType*) = this(values.toList)
 
-  def toXml = <value><array><data>{value.map(_.toXml).reduce(_ ++ _)  }</data></array></value>
+  def toXml = <value><array><data>{val x = value.map(_.toXml); if(!x.isEmpty) x.reduce(_ ++ _)  }</data></array></value>
 }

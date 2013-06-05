@@ -34,7 +34,8 @@ object XmlRpcClient {
       // success can still be fault or normal response
       // hence the ghetto fault detection
       x => x match {
-        case Failure(e) => result.failure(new XmlRpcClientException("Something went wrong", e))
+
+        case Failure(e) => { println(e); result.failure(new XmlRpcClientException("Something went wrong: " + e.getMessage, e))}
         case Success(r) => {
           if ((r \\ "fault").length > 0) {
             XmlRpcResponseFault(r).fold(
