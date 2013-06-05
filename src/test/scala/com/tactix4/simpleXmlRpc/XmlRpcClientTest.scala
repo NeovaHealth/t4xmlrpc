@@ -73,38 +73,21 @@ val host = "192.168.1.95"
  implicit  def patienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(5, Millis))
     whenReady(result2){ case response: XmlRpcResponse => println(response)}
 
-//    result2.onComplete {
-//      x => x match {
-//        case Success(s: XmlRpcResponseNormal) => println("Success: " + s)
-//        case Success(s: XmlRpcResponseFault) => println("Got a fault")
-//        case Failure(f) => println(f.getMessage + "- FAILED")
-//        case _ => fail("result could not be matched!")
-//      }
-//    }
+
   }
 
- // Thread.sleep(5000)
 
-//  test("try to insert a new partner") {
-//
-//    val uid = 1 // Admin User - bypass login
-//    val config = XmlRpcConfig("http", "localhost", 8069, "/xmlrpc/object")
-//    val result = XmlRpcClient.request(config, "execute", db, uid, password, "res.partner", "create", List("name",new XmlRpcString("myname")))
-//
-//    result.onComplete {
-//      println("wtfnow?")
-//      x => x match {
-//        case Success(s: XmlRpcResponseNormal) => println(s)
-//          println("tiredwtf?")
-//          val response = x.map(z => println(z))
-//        case Success(s: XmlRpcResponseFault) => println("Got a fault")
-//        case Failure(f) => println(f.getMessage + "- FAILED")
-//        case _ => println("wtfelse?")
-//          fail("result could not be matched!")
-//      }
-//    }
-//
-//
-//
-//  }
+  test("try to insert a new partner") {
+
+    val uid = 1 // Admin User - bypass login
+    val config = XmlRpcConfig("http", host, 8069, "/xmlrpc/object")
+    val result = XmlRpcClient.request(config, "execute", db, uid, password, "res.partner", "create", XmlRpcStruct(List(("name",XmlRpcString("myname")))))
+
+    whenReady(result){
+        case s: XmlRpcResponseNormal => println(s)
+        case s: XmlRpcResponseFault => println("Got a fault")
+        case x => println(x)
+      }
+    }
+
 }
