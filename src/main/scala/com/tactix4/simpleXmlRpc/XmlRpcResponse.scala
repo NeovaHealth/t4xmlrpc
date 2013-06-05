@@ -19,6 +19,7 @@ trait XmlRpcResponse{
      s.replaceAll("&quot;", "\"")
   }
   def toNode : Node
+  val params : List[XmlRpcDataType]
 }
 
 /**
@@ -84,6 +85,8 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
 
     case x => throw new XmlRpcXmlParseException("could not parse faultString: " + x)
   }
+
+  val params = List(faultCode.fold((string: XmlRpcString) => string, (int: XmlRpcInt) => int), faultString)
 
   override def toString : String  = "Fault Code: " + faultCode + "\nFault String: " + faultString
 

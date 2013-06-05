@@ -71,7 +71,7 @@ val host = "192.168.1.95"
     val uid = 1 // Admin User - bypass login
     val config = XmlRpcConfig("http", "192.168.1.95", 8069, "/xmlrpc/object")
     val result2 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "search", XmlRpcArray(List()))
- implicit  def patienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(5, Millis))
+    implicit  def patienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(5, Millis))
     whenReady(result2){ case response: XmlRpcResponseNormal => {
       val result3 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "read",response.params.head, XmlRpcArray(List("id","name")))
       whenReady(result3){ case response: XmlRpcResponseNormal => {
