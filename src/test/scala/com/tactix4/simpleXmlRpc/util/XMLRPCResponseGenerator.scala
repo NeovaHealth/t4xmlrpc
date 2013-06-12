@@ -42,7 +42,7 @@ object XMLRPCResponseGenerator extends Properties("XML-RPC Reponse generator") {
     t <- pickNGen(n)
   } yield  t.map(x => <param>{x.sample.get}</param>)
 
-  def randomValidResponseGen: Gen[Node] = for {
+  def randomValidResponseGen: Gen[Elem] = for {
     p <- Gen.listOf(randParam)
   } yield <methodResponse><params>{p}</params></methodResponse>
 
@@ -268,12 +268,12 @@ s <- rString
       </array>
     </value>
 
-  def randomValidFaultGen: Gen[Node] = for {
+  def randomValidFaultGen: Gen[Elem] = for {
     fs <- rFaultStruct
   }yield <methodResponse><fault>{fs}</fault></methodResponse>
 
 
-  def randomInValidFaultGen: Gen[Node] = for {
+  def randomInValidFaultGen: Gen[Elem] = for {
     ifs <- rIFaultStruct
   }yield <methodResponse><fault>{ifs}</fault></methodResponse>
 

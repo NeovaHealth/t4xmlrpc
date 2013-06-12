@@ -1,11 +1,14 @@
 package com.tactix4.simpleXmlRpc
 
-import scala.xml.Node
+import scala.xml._
+import util.Diff._
+import util.NoDiff._
+import util.SimplePath._
+import com.tactix4.simpleXmlRpc.util.{Comparison, NoDiff, XmlDiff, XMLRPCResponseGenerator}
 import org.scalatest.FunSuite
 import org.scalatest.prop._
 import org.scalacheck.Prop._
 import org.scalatest.matchers.ShouldMatchers._
-import com.tactix4.simpleXmlRpc.util.XMLRPCResponseGenerator
 
 /**
  * @author max@tactix4.com
@@ -15,12 +18,13 @@ class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
 
   implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 500)
 
+  val comp = new Comparison
   test("internal representation should match input") {
     forAll(XMLRPCResponseGenerator.randomValidResponseGen) {
-      (node: Node) => {
+      (node: Elem) => {
         val input = node
         val output = XmlRpcResponseNormal(node).toNode
-        input should equal(output)
+        assert(comp(input, output) === NoDiff)
       }
     }
   }

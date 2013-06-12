@@ -18,7 +18,7 @@ trait XmlRpcResponse{
   def unescape(s:String) : String = {
      s.replaceAll("&quot;", "\"")
   }
-  def toNode : Node
+  def toNode : Elem
   val params : List[XmlRpcDataType]
 }
 
@@ -90,23 +90,7 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
 
   override def toString : String  = "Fault Code: " + faultCode + "\nFault String: " + faultString
 
-  def toNode: Node =
-    scala.xml.Utility.trim(<methodResponse>
-      <fault>
-        <value>
-          <struct>
-            <member>
-              <name>faultCode</name>
-                {faultCode.fold(_.toXml, _.toXml)}
-            </member>
-            <member>
-              <name>faultString</name>
-              {faultString.toXml}
-            </member>
-          </struct>
-        </value>
-      </fault>
-    </methodResponse>)
+  def toNode: Elem = <methodResponse> <fault> <value> <struct> <member> <name>faultCode</name> {faultCode.fold(_.toXml, _.toXml)} </member> <member> <name>faultString</name> {faultString.toXml} </member> </struct> </value> </fault> </methodResponse>
 }
 
 /**
@@ -164,17 +148,17 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
         XmlRpcBoolean(if(contents.text.equals("0")) false else true)
       }
       case <value><array><data>{contents @_*}</data></array></value>   => {
-        val nodes = (node \ "array" \ "data" \ "value" )
-        val childs = (node \ "array" \ "data")
+        val nodes = node \ "array" \ "data" \ "value"
+        val childs = node \ "array" \ "data"
         if(childs.length > 1 && nodes.length > 1) throw new XmlRpcXmlParseException("Could not parse array correctly: " + node)
         if(childs.length == 0) throw new XmlRpcXmlParseException("Could not parse array correctly: " + node)
         createXmlRpcArray(nodes.toList.reverse)
       }
       case <value><struct>{contents @_*}</struct></value> => {
-        val names = (contents \ "name")
+        val names = contents \ "name"
         if(names.exists(_.descendant.length > 1)) throw new XmlRpcXmlParseException("Struct name member has sub elements: " + node)
         val namesText = names.map(_.text)
-        val values = (contents \ "value" )
+        val values = contents \ "value"
 
         if(namesText.length != values.length) throw new XmlRpcXmlParseException("Could not parse struct correctly: " + node)
         createXmlRpcStruct((namesText zip values).toList.reverse)
@@ -182,7 +166,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
         //if no type is specified assume a string
       case <value>{contents}</value>                              => {
         if(!contents.descendant.isEmpty) throw new XmlRpcXmlParseException("string element has subnodes....")
-        XmlRpcString(unescape(contents.text), false)
+        XmlRpcString(unescape(contents.text), tag = false)
       }
 
       case x => throw new XmlRpcXmlParseException("Parse failed.  Unexpected Node: " + x)
@@ -210,7 +194,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
 
   }
 
-  def toNode : Node =  <methodResponse><params>{params.map((d: XmlRpcDataType) => <param>{d.toXml}</param>)}</params></methodResponse>
+  def toNode : Elem =  <methodResponse><params>{params.map((d: XmlRpcDataType) => <param>{d.toXml}</param>)}</params></methodResponse>
 
   override def toString : String = {
     "<methodResponse><params>" +

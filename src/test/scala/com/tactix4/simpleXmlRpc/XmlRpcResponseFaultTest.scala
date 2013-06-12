@@ -3,8 +3,15 @@ package com.tactix4.simpleXmlRpc
 import org.scalatest.FunSuite
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.matchers.ShouldMatchers._
-import com.tactix4.simpleXmlRpc.util.XMLRPCResponseGenerator
-import scala.xml.Node
+import com.tactix4.simpleXmlRpc.util.{NoDiff, XMLRPCResponseGenerator}
+import scala.xml.{Elem, Node}
+
+import org.scalatest.prop._
+import scala.xml._
+import util.Diff._
+import util.NoDiff._
+import util.SimplePath._
+import com.tactix4.simpleXmlRpc.util.{Comparison, NoDiff, XmlDiff, XMLRPCResponseGenerator}
 
 /**
  * @author max@tactix4.com
@@ -12,15 +19,14 @@ import scala.xml.Node
  */
 class XmlRpcResponseFaultTest extends FunSuite with PropertyChecks{
 
-
+val comp = new Comparison
  // implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 1000)
 
   test("Parse Valid Faults Correctly") {
     forAll(XMLRPCResponseGenerator.randomValidFaultGen){
-      (node: Node) =>
-      val input = scala.xml.Utility.trim(node)
+      (node: Elem) =>
         val output = XmlRpcResponseFault(node).toNode
-        input should equal(output)
+        assert(comp(node, output) === NoDiff)
     }
   }
 
