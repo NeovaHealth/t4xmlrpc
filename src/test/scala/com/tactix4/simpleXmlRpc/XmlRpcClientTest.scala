@@ -12,6 +12,9 @@ import org.scalatest.concurrent.Futures
 import java.util.concurrent.TimeUnit
 import org.scalatest.time.{Seconds, Span, Millis}
 import com.tactix4.simpleXmlRpc
+import akka.actor.{Props, ActorSystem}
+import akka.io
+import spray.can.Http
 
 /**
  * @author max@tactix4.com
@@ -35,16 +38,16 @@ class XmlRpcClientTest extends FunSuite with Futures{
     def isExpired: Boolean = false   // Scala futures cant expire
     def isCanceled: Boolean = false  // Scala futures cannot be cancelled
     override def futureValue(implicit config: PatienceConfig): T = {
-      Await.result(future, Duration(config.timeout.totalNanos, TimeUnit.NANOSECONDS))
+      Await.result(future, Duration(10, TimeUnit.SECONDS))
 
     }
 
   }
 
   val protocol = "http"
-val host = "192.168.1.95"
-  val port = 8069
-  val db = "ww_test3"
+  val host = "localhost"
+  val port = 8888
+  val db = "tactix4"
   val userId = "admin"
   val password = "admin"
 
@@ -52,6 +55,11 @@ val host = "192.168.1.95"
   val objectApi = "/xmlrpc/object"
 
   test("try connect to local openerp server") {
+    implicit val system = ActorSystem()
+
+    val handler = system.actorOf(Props[XmlRpcTestServer], name = "handler")
+
+    io.IO(Http) ! Http.Bind(handler, interface = "localhost", port = port)
 
     val config = XmlRpcConfig(protocol, host, port, commonApi)
     val result = XmlRpcClient.request(config, "login", db, userId, password)
@@ -69,7 +77,7 @@ val host = "192.168.1.95"
   test("try to read the list of partners") {
 
     val uid = 1 // Admin User - bypass login
-    val config = XmlRpcConfig("http", "192.168.1.95", 8069, "/xmlrpc/object")
+    val config = XmlRpcConfig(protocol, host, port, objectApi)
     val result2 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "search", XmlRpcArray(List()))
     implicit  def patienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(5, Millis))
     whenReady(result2){ case response: XmlRpcResponseNormal => {
