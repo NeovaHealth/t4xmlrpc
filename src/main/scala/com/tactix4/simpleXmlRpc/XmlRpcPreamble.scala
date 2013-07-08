@@ -13,5 +13,4 @@ object XmlRpcPreamble {
   implicit def Base64ToXmlRpcBase64(x:Array[Byte]) = XmlRpcBase64(x)
   implicit def ListToXmlRpcArray(x:List[XmlRpcDataType]) = XmlRpcArray(x)
   implicit def TupleListToXmlRpcStruct(x:List[(String, XmlRpcDataType)]) = XmlRpcStruct(x)
-  //implicit def TupleListToXmlRpcStruct(x:List[(String, String)]) = XmlRpcStruct(x)
 }

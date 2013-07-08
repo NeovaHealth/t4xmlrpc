@@ -2,10 +2,7 @@ package com.tactix4.simpleXmlRpc
 
 import util.XmlRpcUtils
 import java.util.Date
-import scala.xml.Elem
-
 import scala.xml.NodeSeq
-import org.apache.commons.codec.binary.Base64
 
 /**
  * Superclass of all XML-RPC types
@@ -60,12 +57,10 @@ case class XmlRpcStruct(value: List[(String, XmlRpcDataType)]) extends XmlRpcDat
 
 }
 
+
+
 case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType{
   type T = List[XmlRpcDataType]
-
-  def add(that: XmlRpcDataType) = XmlRpcArray(that::value)
-
   def this(values: XmlRpcDataType*) = this(values.toList)
-
   def toXml = <value><array><data>{val x = value.map(_.toXml); if(!x.isEmpty) x.reduce(_ ++ _)  }</data></array></value>
 }
