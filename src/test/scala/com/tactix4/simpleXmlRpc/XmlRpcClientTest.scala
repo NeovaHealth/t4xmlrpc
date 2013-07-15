@@ -1,8 +1,6 @@
 package com.tactix4.simpleXmlRpc
 
-import org.scalatest.FunSuite
-import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import XmlRpcPreamble._
 
  import scala.concurrent.{Await, Future}
@@ -11,16 +9,13 @@ import scala.util.{Failure, Success}
 import org.scalatest.concurrent.Futures
 import java.util.concurrent.TimeUnit
 import org.scalatest.time.{Seconds, Span, Millis}
-import com.tactix4.simpleXmlRpc
-import akka.actor.{Props, ActorSystem}
-import akka.io
-import spray.can.Http
+import java.util.Date
 
 /**
  * @author max@tactix4.com
  *         5/22/13
  */
-class XmlRpcClientTest extends FunSuite with Futures{
+class XmlRpcClientTest extends FunSuite with Futures with BeforeAndAfterAll{
 
   implicit def scalaFutureToFutureConcept[T](future: Future[T]): FutureConcept[T] = new FutureConcept[T] {
     def eitherValue: Option[Either[Throwable, T]] = {
@@ -44,23 +39,20 @@ class XmlRpcClientTest extends FunSuite with Futures{
 
   }
 
+
+
   val protocol = "http"
-  val host = "localhost"
-  val port = 8888
-  val db = "tactix4"
+  val host = "192.168.2.102"
+  val port = 8069
+  val db = "ww_test3"
   val userId = "admin"
   val password = "admin"
 
   val commonApi = "/xmlrpc/common"
   val objectApi = "/xmlrpc/object"
 
+
   test("try connect to local openerp server") {
-    implicit val system = ActorSystem()
-
-    val handler = system.actorOf(Props[XmlRpcTestServer], name = "handler")
-
-    io.IO(Http) ! Http.Bind(handler, interface = "localhost", port = port)
-
     val config = XmlRpcConfig(protocol, host, port, commonApi)
     val result = XmlRpcClient.request(config, "login", db, userId, password)
 
@@ -74,14 +66,16 @@ class XmlRpcClientTest extends FunSuite with Futures{
   }
 
 
-  test("try to read the list of partners") {
+  test("try to read the list of patients") {
 
     val uid = 1 // Admin User - bypass login
     val config = XmlRpcConfig(protocol, host, port, objectApi)
     val result2 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "search", XmlRpcArray(List()))
     implicit  def patienceConfig = PatienceConfig(timeout = Span(2, Seconds), interval = Span(5, Millis))
     whenReady(result2){ case response: XmlRpcResponseNormal => {
-      val result3 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "read",response.params.head, XmlRpcArray(List("id","name")))
+      val result3 = XmlRpcClient.request(config, "execute", db, uid, password, "wardware.patient", "read",response.params.head, List(
+        "id" ->  XmlRpcString("name")
+      ))
       whenReady(result3){ case response: XmlRpcResponseNormal => {
         println(response)
       }}
@@ -91,16 +85,17 @@ class XmlRpcClientTest extends FunSuite with Futures{
   }
 
 
-  test("try to insert a new partner") {
+  test("try to insert a new patient") {
 
     val uid = 1 // Admin User - bypass login
     val config = XmlRpcConfig("http", host, 8069, "/xmlrpc/object")
-    val result = XmlRpcClient.request(config, "execute", db, uid, password, "res.partner", "create", XmlRpcStruct(List(("name",XmlRpcString("myname")))))
+    val result = XmlRpcClient.request(config, "execute", db, uid, password, "res.partner", "create", XmlRpcStruct(List(
+      ("name","myNEWname"))))
 
     whenReady(result){
         case s: XmlRpcResponseNormal => println(s)
-        case s: XmlRpcResponseFault => println("Got a fault")
-        case x => println(x)
+        case s: XmlRpcResponseFault => {println(s.faultCode.fold(_.value,_.value)); fail(s.toString)}
+        case x => fail(x.toString)
       }
     }
 

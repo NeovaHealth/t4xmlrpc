@@ -2,9 +2,6 @@ package com.tactix4.simpleXmlRpc
 
 import util.XmlRpcUtils
 import scala.xml.{Node, Elem}
-import scalaz._
-import Scalaz._
-import scala.util.Try
 import com.tactix4.simpleXmlRpc.XmlRpcPreamble._
 /**
  * @author max@tactix4.com
@@ -88,7 +85,9 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
 
   val params = List(faultCode.fold((string: XmlRpcString) => string, (int: XmlRpcInt) => int), faultString)
 
-  override def toString : String  = "Fault Code: " + faultCode + "\nFault String: " + faultString
+  override def toString : String  = "Fault Code: " + faultCode.fold(_.value,_.value) + "\nFault String: " + faultString.value
+
+  def toElem: Elem = <methodResponse><fault><value><struct><member><name>faultCode</name>{faultCode.fold(_.toXml,_.toXml)}</member><member><name>faultString</name>{faultString.toXml}</member></struct></value></fault></methodResponse>
 
   def toNode: Node =
     scala.xml.Utility.trim(<methodResponse>
@@ -209,7 +208,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
     loop(nodes,Nil)
 
   }
-
+  def toElem : Elem =   <methodResponse><params>{params.map((d: XmlRpcDataType) => <param>{d.toXml}</param>)}</params></methodResponse>
   def toNode : Node =  <methodResponse><params>{params.map((d: XmlRpcDataType) => <param>{d.toXml}</param>)}</params></methodResponse>
 
   override def toString : String = {

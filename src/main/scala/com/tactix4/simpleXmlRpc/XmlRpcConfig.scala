@@ -5,7 +5,7 @@ package com.tactix4.simpleXmlRpc
  * 5/21/13
  */
 
-class XmlRpcConfig (val protocol :RPCProtocol.Value, val host: String, val port: Int,  var path: String,val headers: Map[String, String]){
+class XmlRpcConfig (val protocol :RPCProtocol.Value, val host: String, val port: Int,  var path: String,var headers: Map[String, String]){
   def getUrl : String = protocol.toString + "://" + host + ":" + port + path
 
 }

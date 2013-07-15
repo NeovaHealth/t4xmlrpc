@@ -53,11 +53,9 @@ case class XmlRpcStruct(value: List[(String, XmlRpcDataType)]) extends XmlRpcDat
 
   def add(name:String, data: XmlRpcDataType) = XmlRpcStruct((name,data)::value)
 
-  def toXml = <value><struct>{value.map(outputStruct(_)).reduce( _ ++ _ )}</struct></value>
+  def toXml = <value><struct>{value.map(outputStruct).reduce( _ ++ _ )}</struct></value>
 
 }
-
-
 
 case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType{
   type T = List[XmlRpcDataType]

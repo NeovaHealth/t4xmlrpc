@@ -25,7 +25,7 @@ val comp = new Comparison
   test("Parse Valid Faults Correctly") {
     forAll(XMLRPCResponseGenerator.randomValidFaultGen){
       (node: Elem) =>
-        val output = XmlRpcResponseFault(node).toNode
+        val output = XmlRpcResponseFault(node).toElem
         assert(comp(node, output) === NoDiff)
     }
   }

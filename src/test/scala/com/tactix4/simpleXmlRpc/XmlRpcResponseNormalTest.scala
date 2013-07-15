@@ -16,14 +16,14 @@ import org.scalatest.matchers.ShouldMatchers._
  */
 class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
 
-  implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 500)
+//  implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 500)
 
   val comp = new Comparison
   test("internal representation should match input") {
     forAll(XMLRPCResponseGenerator.randomValidResponseGen) {
       (node: Elem) => {
         val input = node
-        val output = XmlRpcResponseNormal(node).toNode
+        val output = XmlRpcResponseNormal(node).toElem
         assert(comp(input, output) === NoDiff)
       }
     }
@@ -32,12 +32,10 @@ class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
   test("should throw exceptions on invalid input") {
     forAll(XMLRPCResponseGenerator.randomInValidResponseGen){
       (node: Node) =>
-        if(node.descendant.length < 2) true // dont test the empty messages - we'll accept them
-        else {
-          val e = intercept[java.lang.Exception]{
+        if(node.descendant.length >= 2) { // dont test the empty messages - we'll accept them
+          intercept[java.lang.Exception]{
             XmlRpcResponseNormal(node)
           }
-          println(e.getMessage)
         }
     }
   }
