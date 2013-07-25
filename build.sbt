@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
     "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
     "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test",
-    "net.databinder.dispatch" % "dispatch-core_2.10" % "0.10.0"
+    "net.databinder.dispatch" % "dispatch-core_2.10" % "0.10.0",
+    "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
 )
 

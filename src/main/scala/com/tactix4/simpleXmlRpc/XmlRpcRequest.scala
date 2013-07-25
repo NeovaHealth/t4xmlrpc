@@ -14,7 +14,7 @@ class XmlRpcRequest(methodName: String, params: List[XmlRpcDataType]) {
    * @return a string representation of the parameters wrapped in an Unparsed object to avoid escaping
    */
   def outputParams(ps: List[XmlRpcDataType]): Unparsed = Unparsed(ps.map(
-    (p: XmlRpcDataType) => (<param>{p.toXml}</param>)).mkString)
+    (p: XmlRpcDataType) => <param>{p.toXml}</param>).mkString)
 
   override def toString: String =
     "<?xml version='1.0'?>" +

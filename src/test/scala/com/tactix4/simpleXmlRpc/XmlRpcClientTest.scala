@@ -42,7 +42,7 @@ class XmlRpcClientTest extends FunSuite with Futures with BeforeAndAfterAll{
 
 
   val protocol = "http"
-  val host = "192.168.2.102"
+  val host = "192.168.2.109"
   val port = 8069
   val db = "ww_test3"
   val userId = "admin"
@@ -54,11 +54,11 @@ class XmlRpcClientTest extends FunSuite with Futures with BeforeAndAfterAll{
 
   test("try connect to local openerp server") {
     val config = XmlRpcConfig(protocol, host, port, commonApi)
-    val result = XmlRpcClient.request(config, "login", db, userId, password)
+    val result = XmlRpcClient.request(config, "login", db+"082734", userId, password)
 
       whenReady(result){
-          case s: XmlRpcResponseNormal => println(s)
-          case s: XmlRpcResponseFault => println(s)
+          case s: XmlRpcResponseNormal => println("Gor a normal response: " + s)
+          case s: XmlRpcResponseFault => println("Got a fault: " + s)
           case x => fail("result could not be matched!: " + x)
         }
 

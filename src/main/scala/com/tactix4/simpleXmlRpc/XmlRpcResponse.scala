@@ -11,7 +11,7 @@ import com.tactix4.simpleXmlRpc.XmlRpcPreamble._
 //TODO: Do away with scala.xml - scales xml instead?
 //TODO: make strings per the spec i.e. not full unicode
 
-trait XmlRpcResponse{
+sealed trait XmlRpcResponse{
   def unescape(s:String) : String = {
      s.replaceAll("&quot;", "\"")
   }
