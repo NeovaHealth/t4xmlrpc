@@ -42,7 +42,7 @@ class XmlRpcClientTest extends FunSuite with Futures with BeforeAndAfterAll{
 
 
   val protocol = "http"
-  val host = "192.168.2.109"
+  val host = "192.168.2.110"
   val port = 8069
   val db = "ww_test3"
   val userId = "admin"

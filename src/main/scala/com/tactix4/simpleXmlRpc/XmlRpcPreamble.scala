@@ -1,7 +1,7 @@
 package com.tactix4.simpleXmlRpc
 
 import java.util.Date
-
+import scala.language.implicitConversions
 /**
  * @author max@tactix4.com
  *         5/23/13

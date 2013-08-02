@@ -19,6 +19,8 @@ object XmlRpcConfig{
 
 
 object RPCProtocol extends Enumeration {
+  import scala.language.implicitConversions
+
   implicit def stringToRpcProtocol(s:String) : RPCProtocol.Value = s.toLowerCase match{
     case "http" => RPC_HTTP
     case "https"=> RPC_HTTPS
