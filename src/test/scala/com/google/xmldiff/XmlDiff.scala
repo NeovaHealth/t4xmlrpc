@@ -1,10 +1,7 @@
-package com.tactix4.simpleXmlRpc.util
+package com.google.xmldiff
+
 import scala.xml.Elem
 
-/**
- * @author max@tactix4.com
- *         6/12/13
- */
 abstract class XmlDiff {
   def isSimilar = true
 }

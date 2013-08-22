@@ -1,4 +1,4 @@
-package com.tactix4.simpleXmlRpc.util
+package com.google.xmldiff
 
 /* Copyright (c) 2011 Jay A. Patel <jay@patel.org.in>
  * Copyright (c) 2008 Google Inc.

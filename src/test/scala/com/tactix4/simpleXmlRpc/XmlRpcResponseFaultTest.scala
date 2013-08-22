@@ -1,27 +1,30 @@
 package com.tactix4.simpleXmlRpc
 
 import org.scalatest.FunSuite
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.matchers.ShouldMatchers._
-import com.tactix4.simpleXmlRpc.util.{NoDiff, XMLRPCResponseGenerator}
-import scala.xml.{Elem, Node}
 
-import org.scalatest.prop._
 import scala.xml._
-import util.Diff._
-import util.NoDiff._
-import util.SimplePath._
-import com.tactix4.simpleXmlRpc.util.{Comparison, NoDiff, XmlDiff, XMLRPCResponseGenerator}
+import org.scalatest.prop._
+import com.google.xmldiff.{Comparison, NoDiff}
+import com.tactix4.simpleXmlRpc.util.XMLRPCResponseGenerator
 
 /**
+ * Tests the libraries ability to represent faults and to throw exceptions for invalid faults
+ *
  * @author max@tactix4.com
  *         5/21/13
  */
 class XmlRpcResponseFaultTest extends FunSuite with PropertyChecks{
 
-val comp = new Comparison
- // implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 1000)
+  implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 1000)
 
+  val comp = new Comparison
+
+
+  /**
+   * Generate some valid faults - feed them into [[com.tactix4.simpleXmlRpc.XmlRpcResponseFault]]
+   * then compare the internal output to the original xml
+   * Uses [[com.google.xmldiff.Comparison]] to do sensible XML comparison
+   */
   test("Parse Valid Faults Correctly") {
     forAll(XMLRPCResponseGenerator.randomValidFaultGen){
       (node: Elem) =>
@@ -30,6 +33,10 @@ val comp = new Comparison
     }
   }
 
+  /**
+   * Generate some invalid faults - expect exceptions thrown when we try to
+   * feed them into [[com.tactix4.simpleXmlRpc.XmlRpcResponseFault]]
+   */
   test("Throw exceptions on Invalid Faults") {
     forAll(XMLRPCResponseGenerator.randomInValidFaultGen){
       (node: Node) =>

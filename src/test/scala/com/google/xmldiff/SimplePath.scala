@@ -1,4 +1,4 @@
-package com.tactix4.simpleXmlRpc.util
+package com.google.xmldiff
 
 /* Copyright (c) 2011 Jay A. Patel <jay@patel.org.in>
  * Copyright (c) 2008 Google Inc.
@@ -15,8 +15,6 @@ package com.tactix4.simpleXmlRpc.util
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import scala.collection._
 
 
 /**
