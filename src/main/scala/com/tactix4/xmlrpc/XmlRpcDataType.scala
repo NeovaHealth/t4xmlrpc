@@ -15,11 +15,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.simpleXmlRpc
+package com.tactix4.xmlrpc
 
 import java.util.Date
 import scala.xml.NodeSeq
-import com.tactix4.simpleXmlRpc.XmlWriter.XmlRpcConverter
+import com.tactix4.xmlrpc.XmlWriter.XmlRpcConverter
 import scala.collection.mutable
 
 
@@ -52,7 +52,7 @@ object XmlWriter {
 }
 
 /**
- * Contains the implicits to convert [[com.tactix4.simpleXmlRpc.XmlRpcDataType]] values into xml
+ * Contains the implicits to convert [[com.tactix4.xmlrpc.XmlRpcDataType]] values into xml
  */
 object XmlRpcDataHelper {
 

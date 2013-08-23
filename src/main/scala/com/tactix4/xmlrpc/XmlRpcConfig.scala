@@ -15,9 +15,9 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.simpleXmlRpc
+package com.tactix4.xmlrpc
 
-import com.tactix4.simpleXmlRpc.Exceptions.XmlRpcClientException
+import com.tactix4.xmlrpc.Exceptions.XmlRpcClientException
 
 /**
  * Class to hold config information for the current XML-RPC target host
@@ -26,7 +26,7 @@ import com.tactix4.simpleXmlRpc.Exceptions.XmlRpcClientException
  * @param host the host to connect to
  * @param port the port to connect to
  * @param path the path to connect to
- * @param headers a [[scala.collection.immutable.Map]] containing headers to be sent to host
+ * @param headers a [[scala.collection.Map]] containing headers to be sent to host
  * @author max@tactix4.com
  * 5/21/13
  */

@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.simpleXmlRpc
+package com.tactix4.xmlrpc
 
 import scala.xml.Unparsed
 import XmlRpcDataHelper._
@@ -23,7 +23,7 @@ import XmlRpcDataHelper._
 /**
  * Represents a request sent to the XML-RPC server
  * @param methodName the name of the method to invoke
- * @param params the list of [[com.tactix4.simpleXmlRpc.XmlRpcData]] parameters to pass along to the method
+ * @param params the list of [[com.tactix4.xmlrpc.XmlRpcData]] parameters to pass along to the method
  * @author max@tactix4.com
  *         5/22/13
  */

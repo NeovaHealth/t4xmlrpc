@@ -1,10 +1,10 @@
-package com.tactix4.simpleXmlRpc.util
+package com.tactix4.xmlrpc.util
 
 import org.scalacheck.Gen._
 import scala.xml.{Elem, Node}
 import org.scalacheck._
 import org.scalacheck.Arbitrary._
-import com.tactix4.simpleXmlRpc._
+import com.tactix4.xmlrpc._
 /**
  * Generate both invalid and valid XML-RPC responses, both Faults and 'normal' responses
  * The valid responses are far more comprehensive than the invalid ones, especially the Faults

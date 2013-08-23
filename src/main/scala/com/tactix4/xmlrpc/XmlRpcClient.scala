@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.simpleXmlRpc
+package com.tactix4.xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext, Promise}
 import scala.util.{Try, Success, Failure}
@@ -24,7 +24,7 @@ import com.stackmob.newman._
 import com.stackmob.newman.dsl._
 import java.net.URL
 import java.util.concurrent.Executors
-import com.tactix4.simpleXmlRpc.Exceptions.XmlRpcClientException
+import com.tactix4.xmlrpc.Exceptions.XmlRpcClientException
 
 /**
  * Main object of the library

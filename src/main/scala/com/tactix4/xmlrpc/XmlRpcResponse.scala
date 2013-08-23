@@ -15,12 +15,12 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.simpleXmlRpc
+package com.tactix4.xmlrpc
 
 import XmlRpcDataHelper._
 
 import scala.xml.{Node, Elem}
-import com.tactix4.simpleXmlRpc.Exceptions.XmlRpcParseException
+import com.tactix4.xmlrpc.Exceptions.XmlRpcParseException
 
 
 /**
@@ -33,7 +33,7 @@ import com.tactix4.simpleXmlRpc.Exceptions.XmlRpcParseException
 //TODO: Use Validations rather than all this horrible exception throwing
 
 /**
- * Provides the superclass to [[com.tactix4.simpleXmlRpc.XmlRpcResponseNormal]] and [[com.tactix4.simpleXmlRpc.XmlRpcResponseFault]]
+ * Provides the superclass to [[com.tactix4.xmlrpc.XmlRpcResponseNormal]] and [[com.tactix4.xmlrpc.XmlRpcResponseFault]]
  */
 sealed trait XmlRpcResponse{
   def toElem: Elem

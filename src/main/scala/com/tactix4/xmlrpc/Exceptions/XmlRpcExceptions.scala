@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.simpleXmlRpc.Exceptions
+package com.tactix4.xmlrpc.Exceptions
 
 /**
  * @author max@tactix4.com

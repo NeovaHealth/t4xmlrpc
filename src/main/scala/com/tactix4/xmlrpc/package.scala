@@ -20,13 +20,13 @@ package com.tactix4
 import java.util.{TimeZone, Date}
 import scala.language.implicitConversions
 import collection._
-import com.tactix4.simpleXmlRpc.Exceptions.XmlRpcParseException
+import com.tactix4.xmlrpc.Exceptions.XmlRpcParseException
 import java.text.{ParseException, SimpleDateFormat}
 /**
  * @author max@tactix4.com
  *         6/1/13
  */
-package object simpleXmlRpc {
+package object xmlrpc {
   type FaultCodeType = Either[XmlRpcString,XmlRpcInt]
   type FaultStringType = XmlRpcString
   type XmlRpcArray = XmlRpcArrayType[XmlRpcData]
