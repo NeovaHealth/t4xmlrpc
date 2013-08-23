@@ -18,7 +18,7 @@
 package com.tactix4.xmlrpc
 
 import XmlRpcDataHelper._
-
+import scala.language.postfixOps
 import scala.xml.{Node, Elem}
 import com.tactix4.xmlrpc.Exceptions.XmlRpcParseException
 
