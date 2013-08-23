@@ -1,4 +1,4 @@
-name := "t4XmlRpc"
+name := "xmlrpc"
 
 version := "1.0"
 
