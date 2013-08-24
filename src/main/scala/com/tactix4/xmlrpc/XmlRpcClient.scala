@@ -37,7 +37,7 @@ object XmlRpcClient extends Logging {
   implicit val ec : ExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
   implicit val httpClient = new ApacheHttpClient
 
-  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcData*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
+  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataValue*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
 
   /**
    * Send an XML-RPC request
@@ -46,7 +46,7 @@ object XmlRpcClient extends Logging {
    * @param params the list of parameters to supply to the method
    * @return a Future[XmlRpcResponse]
    */
-  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcData]): Future[XmlRpcResponse] = {
+  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataValue]): Future[XmlRpcResponse] = {
     val url = new URL(config.getUrl)
     val requestBody = new XmlRpcRequest(methodName, params)
     val httpRequest = POST(url).addBody(requestBody.toString).addHeaders(config.headers.toList)

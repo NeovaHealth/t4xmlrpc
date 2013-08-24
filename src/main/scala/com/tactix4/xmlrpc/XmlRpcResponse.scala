@@ -17,7 +17,6 @@
 
 package com.tactix4.xmlrpc
 
-import XmlRpcDataHelper._
 import scala.language.postfixOps
 import scala.xml.{Node, Elem}
 import com.tactix4.xmlrpc.Exceptions.XmlRpcParseException
@@ -37,7 +36,7 @@ import com.tactix4.xmlrpc.Exceptions.XmlRpcParseException
  */
 sealed trait XmlRpcResponse{
   def toElem: Elem
-  val params : List[XmlRpcData]
+  val params : List[XmlRpcDataValue]
 }
 
 /**
@@ -87,7 +86,7 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
   }).getOrElse(throw new XmlRpcParseException("Could not find faultString"))
 
 
-  val params : List[XmlRpcData] = List(faultCode.fold(s => s, i => i), faultString)
+  val params : List[XmlRpcDataValue] = List(faultCode.fold(s => s, i => i), faultString)
 
   override def toString : String  = "Fault Code: " + faultCode.fold(_.value,_.value) + "\nFault String: " + faultString.value
 
@@ -95,7 +94,7 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
    *
    * @return an Elem representation of the fault message
    */
-  def toElem: Elem = <methodResponse><fault><value><struct><member><name>faultCode</name>{faultCode.fold(s => XmlWriter.toXml(s),i => XmlWriter.toXml(i))}</member><member><name>faultString</name>{XmlWriter.toXml(faultString)}</member></struct></value></fault></methodResponse>
+  def toElem: Elem = <methodResponse><fault><value><struct><member><name>faultCode</name>{faultCode.fold(s => XmlWriter.write(s),i => XmlWriter.write(i))}</member><member><name>faultString</name>{XmlWriter.write(faultString)}</member></struct></value></fault></methodResponse>
 }
 
 /**
@@ -105,9 +104,9 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
 case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
 
   /**
-   * a list of XmlRpcDataType object representing the response's arguments
+   * a list of XmlRpcDataValue object representing the response's arguments
    */
-  val params: List[XmlRpcData] = {
+  val params: List[XmlRpcDataValue] = {
     val query = element \ "params" \ "param" \ "_"
     query.map(getParam).toList
   }
@@ -115,10 +114,10 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
   /**
    * translate an xml node into a scala type
    * @param node the node to convert
-   * @return a case class based on XmlRpcDataType
+   * @return a case class based on XmlRpcDataValue
    * @throws XmlRpcParseException if the node doesn't match one the expected types
    */
-  private[XmlRpcResponseNormal] def getParam(node: Node) : XmlRpcData =
+  private[XmlRpcResponseNormal] def getParam(node: Node) : XmlRpcDataValue =
   try{
     scala.xml.Utility.trim(node) match {
       case <value><string>{v}</string></value>        if v.isAtom =>  XmlRpcString(unescape(v.text))
@@ -147,7 +146,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
   }
 
   def createXmlRpcArray(nodes : List[Node]) : XmlRpcArray = {
-    def loop(nodes:List[Node], acc:List[XmlRpcData]) : XmlRpcArray = nodes match {
+    def loop(nodes:List[Node], acc:List[XmlRpcDataValue]) : XmlRpcArray = nodes match {
       case Nil => acc
       case x::xs => loop(xs, getParam(x)::acc)
      }
@@ -155,7 +154,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
   }
 
   def createXmlRpcStruct(nodes : List[(String,Node)]) : XmlRpcStruct =  {
-    def loop(nodes: List[(String,Node)], acc:List[(String, XmlRpcData)]) : XmlRpcStruct = nodes match {
+    def loop(nodes: List[(String,Node)], acc:List[(String, XmlRpcDataValue)]) : XmlRpcStruct = nodes match {
       case Nil => acc
       case (x1,x2)::xs => loop(xs, x1 -> getParam(x2) :: acc)
     }
@@ -163,7 +162,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
 
   }
 
-  def toElem : Elem =   <methodResponse><params>{params.map(d => <param>{XmlWriter.toXml(d)}</param>)}</params></methodResponse>
+  def toElem : Elem =   <methodResponse><params>{params.map(d => <param>{XmlWriter.write(d)}</param>)}</params></methodResponse>
 
   override def toString : String = toElem.toString()
 }
