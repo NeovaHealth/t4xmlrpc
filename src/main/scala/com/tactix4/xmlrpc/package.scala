@@ -78,8 +78,6 @@ package object xmlrpc {
      s.replaceAll("&quot;", "\"")
   }
 
-  class MultipleMap[A,B] extends mutable.HashMap[A, mutable.Set[B]] with mutable.MultiMap[A,B]
-
   implicit def IntToXmlRpcInt(x: Int) = XmlRpcInt(x)
   implicit def StringToXmlRpcString(x: String) = XmlRpcString(x)
   implicit def BooleanToXmlRpcBoolean(x:Boolean) = XmlRpcBoolean(x)

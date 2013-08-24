@@ -26,7 +26,7 @@ import com.tactix4.xmlrpc.Exceptions.XmlRpcClientException
  * @param host the host to connect to
  * @param port the port to connect to
  * @param path the path to connect to
- * @param headers a [[scala.collection.Map]] containing headers to be sent to host
+ * @param headers a [[scala.collection.immutable.Map]] containing headers to be sent to host
  * @author max@tactix4.com
  * 5/21/13
  */
