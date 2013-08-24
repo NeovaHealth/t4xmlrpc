@@ -155,11 +155,11 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
   }
 
   def createXmlRpcStruct(nodes : List[(String,Node)]) : XmlRpcStruct =  {
-    def loop(nodes: List[(String,Node)], acc:MultipleMap[String, XmlRpcData]) : XmlRpcStruct = nodes match {
+    def loop(nodes: List[(String,Node)], acc:List[(String, XmlRpcData)]) : XmlRpcStruct = nodes match {
       case Nil => acc
-      case (x1,x2)::xs => loop(xs, acc.addBinding(x1,getParam(x2)))
+      case (x1,x2)::xs => loop(xs, x1 -> getParam(x2) :: acc)
     }
-    loop(nodes,new MultipleMap[String, XmlRpcData])
+    loop(nodes,Nil)
 
   }
 

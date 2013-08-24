@@ -35,7 +35,7 @@ case class XmlRpcDouble(value: Double) extends XmlRpcDataType[Double]
 case class XmlRpcDateTime(value: Date) extends XmlRpcDataType[Date]
 case class XmlRpcBase64(value: Array[Byte]) extends XmlRpcDataType[Array[Byte]]
 case class XmlRpcArrayType[A <: XmlRpcData](value: List[A]) extends XmlRpcDataType[List[A]]
-case class XmlRpcStructType[A <: XmlRpcData](value: mutable.MultiMap[String, A]) extends XmlRpcDataType[mutable.MultiMap[String, A]]
+case class XmlRpcStructType[A <: XmlRpcData](value: List[(String, A)]) extends XmlRpcDataType[List[(String, A)]]
 
 /**
  * Object to aid printing out XML-RPC types as xml
@@ -103,10 +103,8 @@ object XmlRpcDataHelper {
   }
 
   implicit def structConverter : XmlWriter.XmlRpcConverter[XmlRpcStruct] = new XmlRpcConverter[XmlRpcStruct] {
-    private def outputStruct(t: ( String, mutable.Set[XmlRpcData])) : NodeSeq =
-      t._2.map(
-        d  => <member><name>{t._1}</name>{XmlWriter.toXml(d)}</member>: NodeSeq
-      ).reduce(_ ++ _)
+    private def outputStruct(t: ( String, XmlRpcData)) : NodeSeq =
+        <member><name>{t._1}</name>{XmlWriter.toXml(t._2)}</member>: NodeSeq
 
     def convertToXml(s: XmlRpcStruct): NodeSeq = <value><struct>{s.value.map(outputStruct)}</struct></value>
   }

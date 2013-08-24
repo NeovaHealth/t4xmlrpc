@@ -87,10 +87,6 @@ package object xmlrpc {
   implicit def Base64ToXmlRpcBase64(x:Array[Byte]) = XmlRpcBase64(x)
   implicit def DateToXmlRpcDate(x:Date) = XmlRpcDateTime(x)
   implicit def ListToXmlRpcArray(x:List[XmlRpcData]) = XmlRpcArrayType(x)
-  implicit def MultiMapToXmlRpcStruct(x:collection.mutable.MultiMap[String, XmlRpcData]) = XmlRpcStructType(x)
-  implicit def MapToXmlRpcStruct(x:Map[String, XmlRpcData]) = {
-    XmlRpcStructType(x.foldLeft(new mutable.HashMap[String, mutable.Set[XmlRpcData]] with mutable.MultiMap[String, XmlRpcData]){
-      (acc, pair) => acc.addBinding(pair._1, pair._2)
-    })
-  }
+  implicit def TupleListToXmlRpcStruct(x:List[(String, XmlRpcData)]) = XmlRpcStructType(x)
+  implicit def MapToXmlRpcStruct(x:Map[String, XmlRpcData]) = XmlRpcStructType(x.toList)
 }
