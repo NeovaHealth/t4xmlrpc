@@ -136,6 +136,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
         if(namesText.length != values.length) throw new XmlRpcParseException("Could not parse struct correctly: " + node)
         createXmlRpcStruct((namesText zip values).toList.reverse)
       }
+      case <value><string/></value>                               => XmlRpcString("")
       //if no type is specified assume a string
       case <value>{v}</value>                         if v.isAtom =>  XmlRpcString(unescape(v.text), withTag = false)
       case x                                                      => throw new XmlRpcParseException("Parse failed.  Unexpected Node: " + x)
