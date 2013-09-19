@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.xmlrpc
+package com.tactix4.t4xmlrpc
 import java.util.Date
 import scala.xml.NodeSeq
 

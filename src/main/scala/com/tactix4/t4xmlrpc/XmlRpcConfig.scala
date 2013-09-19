@@ -15,9 +15,9 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.xmlrpc
+package com.tactix4.t4xmlrpc
 
-import com.tactix4.xmlrpc.Exceptions.XmlRpcClientException
+import com.tactix4.t4xmlrpc.Exceptions.XmlRpcClientException
 
 /**
  * Class to hold config information for the current XML-RPC target host

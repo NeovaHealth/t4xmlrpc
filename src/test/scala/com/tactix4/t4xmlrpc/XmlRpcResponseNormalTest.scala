@@ -1,10 +1,10 @@
-package com.tactix4.xmlrpc
+package com.tactix4.t4xmlrpc
 
 import scala.xml._
 import org.scalatest.prop._
 import org.scalatest.FunSuite
 import com.google.xmldiff.{Comparison, NoDiff}
-import com.tactix4.xmlrpc.util.XMLRPCResponseGenerator
+import com.tactix4.t4xmlrpc.util.XMLRPCResponseGenerator
 
 /**
  * Tests the resilience of the library to represent responses as well as to throw exceptions on invalid input
@@ -19,7 +19,7 @@ class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
   val comp = new Comparison
 
   /**
-   * Generate some valid responses - feed them into [[com.tactix4.xmlrpc.XmlRpcResponseNormal]]
+   * Generate some valid responses - feed them into [[com.tactix4.t4xmlrpc.XmlRpcResponseNormal]]
    * then compare the internal output to the original xml
    * Uses [[com.google.xmldiff.Comparison]] to do sensible XML comparison
    */
@@ -34,7 +34,7 @@ class XmlRpcResponseNormalTest extends FunSuite with PropertyChecks{
 
   /**
    * Generate some invalid responses - expect exceptions thrown when we try to
-   * feed them into [[com.tactix4.xmlrpc.XmlRpcResponseNormal]]
+   * feed them into [[com.tactix4.t4xmlrpc.XmlRpcResponseNormal]]
    */
   test("should throw exceptions on invalid input") {
     forAll(XMLRPCResponseGenerator.randomInValidResponseGen){

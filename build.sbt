@@ -1,4 +1,4 @@
-name := "xmlrpc"
+name := "t4xmlrpc"
 
 organization := "com.tactix4"
 
@@ -33,7 +33,7 @@ OsgiKeys.importPackage ++= Seq(
 )
 
 OsgiKeys.exportPackage ++= Seq(
-    "com.tactix4.xmlrpc",
-    "com.tactix4.xmlrpc.Exceptions"
+    "com.tactix4.t4xmlrpc",
+    "com.tactix4.t4xmlrpc.Exceptions"
 )
 

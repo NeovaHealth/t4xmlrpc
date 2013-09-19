@@ -1,11 +1,11 @@
-package com.tactix4.xmlrpc
+package com.tactix4.t4xmlrpc
 
 import org.scalatest.FunSuite
 
 import scala.xml._
 import org.scalatest.prop._
 import com.google.xmldiff.{Comparison, NoDiff}
-import com.tactix4.xmlrpc.util.XMLRPCResponseGenerator
+import com.tactix4.t4xmlrpc.util.XMLRPCResponseGenerator
 
 /**
  * Tests the libraries ability to represent faults and to throw exceptions for invalid faults
@@ -21,7 +21,7 @@ class XmlRpcResponseFaultTest extends FunSuite with PropertyChecks{
 
 
   /**
-   * Generate some valid faults - feed them into [[com.tactix4.xmlrpc.XmlRpcResponseFault]]
+   * Generate some valid faults - feed them into [[com.tactix4.t4xmlrpc.XmlRpcResponseFault]]
    * then compare the internal output to the original xml
    * Uses [[com.google.xmldiff.Comparison]] to do sensible XML comparison
    */
@@ -35,7 +35,7 @@ class XmlRpcResponseFaultTest extends FunSuite with PropertyChecks{
 
   /**
    * Generate some invalid faults - expect exceptions thrown when we try to
-   * feed them into [[com.tactix4.xmlrpc.XmlRpcResponseFault]]
+   * feed them into [[com.tactix4.t4xmlrpc.XmlRpcResponseFault]]
    */
   test("Throw exceptions on Invalid Faults") {
     forAll(XMLRPCResponseGenerator.randomInValidFaultGen){

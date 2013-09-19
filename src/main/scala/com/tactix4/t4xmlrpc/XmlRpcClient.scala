@@ -15,13 +15,13 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.xmlrpc
+package com.tactix4.t4xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext, Promise}
 import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.Executors
 import scala.util.{Try, Success, Failure}
-import com.tactix4.xmlrpc.Exceptions.XmlRpcClientException
+import com.tactix4.t4xmlrpc.Exceptions.XmlRpcClientException
 import dispatch._
 
 /**

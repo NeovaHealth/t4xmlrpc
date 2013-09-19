@@ -15,11 +15,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.tactix4.xmlrpc
+package com.tactix4.t4xmlrpc
 
 import scala.language.postfixOps
 import scala.xml.{Node, Elem}
-import com.tactix4.xmlrpc.Exceptions.XmlRpcParseException
+import com.tactix4.t4xmlrpc.Exceptions.XmlRpcParseException
 
 
 /**
@@ -32,7 +32,7 @@ import com.tactix4.xmlrpc.Exceptions.XmlRpcParseException
 //TODO: Use Validations rather than all this horrible exception throwing
 
 /**
- * Provides the superclass to [[com.tactix4.xmlrpc.XmlRpcResponseNormal]] and [[com.tactix4.xmlrpc.XmlRpcResponseFault]]
+ * Provides the superclass to [[com.tactix4.t4xmlrpc.XmlRpcResponseNormal]] and [[com.tactix4.t4xmlrpc.XmlRpcResponseFault]]
  */
 sealed trait XmlRpcResponse{
   def toElem: Elem
@@ -42,7 +42,7 @@ sealed trait XmlRpcResponse{
 /**
  * Represents a fault response from the server
  * it contains the error code and error string returned by the server
- * the error code should be an Int as per http://xmlrpc.scripting.com/spec
+ * the error code should be an Int as per http://t4xmlrpc.scripting.com/spec
  * however pythons XML-RPC library decided to use a string instead :/
  * http://docs.python.org/2/library/xmlrpclib.html#fault-objects
  * for this reason we allow a string too, hence why faultCode has type Either[XmlRpcString.XmlRpcInt]
