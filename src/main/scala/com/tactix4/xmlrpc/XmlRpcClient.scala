@@ -18,13 +18,11 @@
 package com.tactix4.xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext, Promise}
-import scala.util.{Try, Success, Failure}
 import com.typesafe.scalalogging.slf4j.Logging
-import com.stackmob.newman._
-import com.stackmob.newman.dsl._
-import java.net.URL
 import java.util.concurrent.Executors
+import scala.util.{Try, Success, Failure}
 import com.tactix4.xmlrpc.Exceptions.XmlRpcClientException
+import dispatch._
 
 /**
  * Main object of the library
@@ -34,8 +32,8 @@ import com.tactix4.xmlrpc.Exceptions.XmlRpcClientException
  */
 object XmlRpcClient extends Logging {
 
+
   implicit val ec : ExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
-  implicit val httpClient = new ApacheHttpClient
 
   def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataValue*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
 
@@ -47,31 +45,31 @@ object XmlRpcClient extends Logging {
    * @return a Future[XmlRpcResponse]
    */
   def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataValue]): Future[XmlRpcResponse] = {
-    val url = new URL(config.getUrl)
-    val requestBody = new XmlRpcRequest(methodName, params)
-    val httpRequest = POST(url).addBody(requestBody.toString).addHeaders(config.headers.toList)
 
-    logger.debug("sending message headers: " + httpRequest.headers.toString)
-    logger.debug("sending message body: " + requestBody.toString)
+    val request = new XmlRpcRequest(methodName, params)
+    val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody(request.toString)
 
     val result = Promise[XmlRpcResponse]()
 
-    httpRequest.executeAsyncUnsafe.toScalaFuture.onComplete {
-      _ match {
+    logger.info("sending message headers: " + config.headers)
+    logger.info("sending message body: " + request.toString)
+
+    Http(builder OK as.String).onComplete {
+
+      x => x match {
         case Failure(e) => {
-          logger.error("Failed to send message: " + httpRequest.body.toString + "\n" + e.getMessage)
-          result.failure(new XmlRpcClientException("Error connecting to XML-RPC Server: " + e.getMessage, e))
+          logger.error("Failed to send message: " + builder.toString)
+          result.failure(new XmlRpcClientException("Error connecting to XMLRPC Server: " + e.getMessage, e))
         }
         case Success(r) => {
-          val xmlAnswer = scala.xml.XML.loadString(r.bodyString)
-          logger.debug("Got response: " + xmlAnswer)
-          if ((xmlAnswer \ "fault").isEmpty) {
-            result.complete(Try(XmlRpcResponseNormal(xmlAnswer)))
+          val xmlResult = scala.xml.XML.loadString(r)
+          if ((xmlResult \ "fault").isEmpty) {
+            result.complete(Try(XmlRpcResponseNormal(xmlResult)))
           } else {
-            result.complete(Try(XmlRpcResponseFault(xmlAnswer)))
+            result.complete(Try(XmlRpcResponseFault(xmlResult)))
           }
-        }
       }
+    }
     }
     result.future
   }
