@@ -5,7 +5,7 @@ This library provides a simple and easy to use xml-rpc implementation in scala.
 
 ### Motivation
 
-Existing xml-rcp libraries from the java world (such as apache's offering *link*)
+Existing xml-rcp libraries from the java world (such as [apache's offering](http://ws.apache.org/xmlrpc/))
 end up tossing around arrays of Objects, which in the typesafe world of scala, is
 not ideal and quite messy to use.
 
