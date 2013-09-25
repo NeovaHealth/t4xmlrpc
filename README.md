@@ -1,6 +1,8 @@
 
 # Tactix4 XML-RPC
+
 ***
+
 This library provides a simple and easy to use xml-rpc implementation in scala.
 
 ### Motivation
