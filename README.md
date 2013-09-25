@@ -14,7 +14,7 @@ early as possible and making use of scala 2.10's Futures.
 
 ## Use case
 
-```
+```scala
 val config:XmlRpcConfig = XmlRpcConfig("http", "localhost", 8888, "/pathToHit")
 
 val result:Future[XmlRpcResponse] = XmlRpcClient.request(config, "someMethod", "someParameter")
