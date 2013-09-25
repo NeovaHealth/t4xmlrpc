@@ -1,6 +1,6 @@
 
 # Tactix4 XML-RPC
-- - -
+
 This library provides a simple and easy to use xml-rpc implementation in scala.
 
 ### Motivation
@@ -14,8 +14,7 @@ early as possible and making use of scala 2.10's Futures.
 
 ## Use case
 
-'''
-
+```
 val config:XmlRpcConfig = XmlRpcConfig("http", "localhost", 8888, "/pathToHit")
 
 val result:Future[XmlRpcResponse] = XmlRpcClient.request(config, "someMethod", "someParameter")
@@ -29,7 +28,7 @@ result.onComplete( _ match {
    })
 }
 
-'''
+```
 
 ## Details
 
