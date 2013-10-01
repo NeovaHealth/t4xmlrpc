@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
     "ch.qos.logback" % "logback-classic" % "1.0.9" % "test"
 )
 
+resolvers += "Local SBT Repository" at Path.userHome.asFile.toURI.toURL+".ivy2/local"
+
 osgiSettings
 
 OsgiKeys.bundleSymbolicName := "Tactix4 XML-RPC"
