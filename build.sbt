@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
     "ch.qos.logback" % "logback-classic" % "1.0.9" % "test"
 )
 
-resolvers += "Local SBT Repository" at Path.userHome.asFile.toURI.toURL+".ivy2/local"
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 
 osgiSettings
 
