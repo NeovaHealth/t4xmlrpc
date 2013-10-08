@@ -23,6 +23,7 @@ import java.util.concurrent.Executors
 import scala.util.{Try, Success, Failure}
 import com.tactix4.t4xmlrpc.Exceptions.XmlRpcClientException
 import dispatch._
+import org.xml.sax.SAXParseException
 
 /**
  * Main object of the library
@@ -62,11 +63,16 @@ object XmlRpcClient extends Logging {
           result.failure(new XmlRpcClientException("Error connecting to XMLRPC Server: " + e.getMessage, e))
         }
         case Success(r) => {
-          val xmlResult = scala.xml.XML.loadString(r)
-          if ((xmlResult \ "fault").isEmpty) {
-            result.complete(Try(XmlRpcResponseNormal(xmlResult)))
-          } else {
-            result.complete(Try(XmlRpcResponseFault(xmlResult)))
+          try{
+            val xmlResult = scala.xml.XML.loadString(r)
+            if ((xmlResult \ "fault").isEmpty) {
+              result.complete(Try(XmlRpcResponseNormal(xmlResult)))
+            } else {
+              result.complete(Try(XmlRpcResponseFault(xmlResult)))
+            }
+          }
+          catch {
+            case e:Throwable => result.failure(new XmlRpcClientException("Error reading server response: " + e.getMessage, e))
           }
       }
     }
