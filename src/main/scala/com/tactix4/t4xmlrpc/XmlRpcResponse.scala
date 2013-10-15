@@ -69,7 +69,7 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
       }
     }
     catch {
-      case e: NumberFormatException => throw new XmlRpcParseException("could not parse xml content",e)
+      case e: Throwable => throw new XmlRpcParseException("Could not parse xml content: " + e.getMessage,e)
     }
   ).getOrElse(throw new XmlRpcParseException("Could not find faultCode"))
 
