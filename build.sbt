@@ -15,11 +15,11 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-    "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
-    "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
-    "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
-    "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
-    "ch.qos.logback" % "logback-classic" % "1.0.9" % "test"
+  "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
+  "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+  "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
+  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
+  "ch.qos.logback" % "logback-classic" % "1.0.9" % "test"
 )
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))

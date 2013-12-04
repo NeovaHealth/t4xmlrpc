@@ -30,8 +30,8 @@ case class XmlRpcString(value: String, withTag: Boolean = true) extends XmlRpcDa
 case class XmlRpcDouble(value: Double) extends XmlRpcDataValue
 case class XmlRpcDateTime(value: Date) extends XmlRpcDataValue
 case class XmlRpcBase64(value: Array[Byte]) extends XmlRpcDataValue
-case class XmlRpcArrayType[A <: XmlRpcDataValue](value: List[A]) extends XmlRpcDataValue
-case class XmlRpcStructType[A <: XmlRpcDataValue](value: List[(String, A)]) extends XmlRpcDataValue
+case class XmlRpcArray(value: List[XmlRpcDataValue]) extends XmlRpcDataValue
+case class XmlRpcStruct(value: Map[String, XmlRpcDataValue]) extends XmlRpcDataValue
 
 /**
  * Object to aid printing out XML-RPC types as xml
@@ -46,8 +46,8 @@ object XmlWriter {
     case XmlRpcBoolean(b)     => <value><boolean>{if(b) 1 else 0}</boolean></value>
     case XmlRpcBase64(b)      => <value><base64>{new String(b.value)}</base64></value>
     case XmlRpcDateTime(d)    => <value><date>{getDateAsISO8601String(d)}</date></value>
-    case XmlRpcArrayType(a)   => <value><array><data>{a.map(XmlWriter.write)}</data></array></value>
-    case XmlRpcStructType(s)  => <value><struct>{s.map(z => <member><name>{z._1}</name>{XmlWriter.write(z._2)}</member>)}</struct></value>
+    case XmlRpcArray(a)       => <value><array><data>{a.map(XmlWriter.write)}</data></array></value>
+    case XmlRpcStruct(s)      => <value><struct>{s.map(z => <member><name>{z._1}</name>{XmlWriter.write(z._2)}</member>)}</struct></value>
   }
 
 }

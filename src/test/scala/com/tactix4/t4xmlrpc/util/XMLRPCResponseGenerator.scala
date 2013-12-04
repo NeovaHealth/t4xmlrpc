@@ -53,19 +53,27 @@ object XMLRPCResponseGenerator extends Properties("XML-RPC Reponse generator") {
    * The valid data generators
    */
 
+  def nonEmptyAlphaNumStr: Gen[String] = for {
+    an <- choose(1,10)
+    bn <- choose(0,9)
+    cn <- choose(0,3)
+    c <- listOfN(an,alphaChar)
+    n <- listOfN(bn,numChar)
+    u <- Gen.pick(cn,"_",":",";","/",".")
+  } yield scala.util.Random.shuffle(c ++ n ++ u).mkString
 
   def rDouble: Gen[Elem]      = for {d <- arbDouble.arbitrary}    yield <value><double>{d}</double></value>
   def rInt: Gen[Elem]         = for {i <- arbInt.arbitrary}       yield <value><int>{i}</int></value>
   def rBoolean: Gen[Elem]     = for {b <- Gen.oneOf(0, 1)}        yield <value><boolean>{b}</boolean></value>
   def rString: Gen[Elem]      = oneOf(rString1,rString2)
-  def rString1: Gen[Elem]     = for {s <- arbString.arbitrary}    yield <value><string>{s}</string></value>
-  def rString2: Gen[Elem]     = for {s <-arbString.arbitrary}     yield <value>{s}</value>
-  def rB64: Gen[Elem]         = for {b64 <- arbString.arbitrary}  yield <value><base64>{b64}</base64></value>
+  def rString1: Gen[Elem]     = for {s <- nonEmptyAlphaNumStr}    yield <value><string>{s}</string></value>
+  def rString2: Gen[Elem]     = for {s <- nonEmptyAlphaNumStr}     yield <value>{s}</value>
+  def rB64: Gen[Elem]         = for {b64 <- arbString.arbitrary}  yield <value><base64>{new sun.misc.BASE64Encoder().encode(b64.getBytes)}</base64></value>
   def rDate: Gen[Elem]        = for {date <- arbDate.arbitrary}   yield <value><date>{getDateAsISO8601String(date)}</date></value>
   def rStruct : Gen[Elem]     = for {
     n <- choose(1,3)
     m :Seq[Gen[Elem]] <- pickNGen(n)
-  } yield <value><struct>{m.map((gen: Gen[Elem]) => <member><name>{arbString.arbitrary.sample.get}</name>{gen.sample.get}</member>)}</struct></value>
+  } yield <value><struct>{m.map((gen: Gen[Elem]) => <member><name>{nonEmptyAlphaNumStr.sample.get}</name>{gen.sample.get}</member>)}</struct></value>
   def rArray : Gen[Elem]      = for {
     n <- choose(1, 3)
     m :Seq[Gen[Elem]] <-  pickNGen(n)

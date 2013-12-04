@@ -59,8 +59,7 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
   //parse the faultString
   val faultCode : Either[XmlRpcString, XmlRpcInt] = faultCodeValueElem.map(
     try{
-      _ match{
-
+      {
         case <value><int>{contents}</int></value>       => Right(XmlRpcInt(contents.text.toInt))
         case <value><i4>{contents}</i4></value>         => Right(XmlRpcInt(contents.text.toInt))
         case <value><string>{contents}</string></value> => Left(XmlRpcString(contents.text))
@@ -76,14 +75,14 @@ case class XmlRpcResponseFault(element: Node) extends XmlRpcResponse {
   //grab the faultString value
   private[XmlRpcResponseFault] val faultStringValueElem = (members.filter { _ \\ "_" exists (_.text == "faultString") } \ "value" ).headOption
   //parse the faultString
-  val faultString : XmlRpcString = faultStringValueElem.map( _ match {
+  val faultString : XmlRpcString = faultStringValueElem.map {
 
     case <value><string>{contents}</string></value> => XmlRpcString(contents.text)
-    case <value>{unnamedString}</value>             => XmlRpcString(unnamedString.text,withTag = false)
+    case <value>{unnamedString}</value>             => XmlRpcString(unnamedString.text, withTag = false)
 
     case x => throw new XmlRpcParseException("Could not parse faultString value element: " + x)
 
-  }).getOrElse(throw new XmlRpcParseException("Could not find faultString"))
+  }.getOrElse(throw new XmlRpcParseException("Could not find faultString"))
 
 
   val params : List[XmlRpcDataValue] = List(faultCode.fold(s => s, i => i), faultString)
@@ -156,7 +155,7 @@ case class XmlRpcResponseNormal(element: Node) extends XmlRpcResponse{
 
   def createXmlRpcStruct(nodes : List[(String,Node)]) : XmlRpcStruct =  {
     def loop(nodes: List[(String,Node)], acc:List[(String, XmlRpcDataValue)]) : XmlRpcStruct = nodes match {
-      case Nil => acc
+      case Nil => acc.toMap
       case (x1,x2)::xs => loop(xs, x1 -> getParam(x2) :: acc)
     }
     loop(nodes,Nil)

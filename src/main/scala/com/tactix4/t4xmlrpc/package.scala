@@ -29,8 +29,6 @@ import java.text.{ParseException, SimpleDateFormat}
 package object t4xmlrpc {
   type FaultCodeType = Either[XmlRpcString,XmlRpcInt]
   type FaultStringType = XmlRpcString
-  type XmlRpcArray = XmlRpcArrayType[XmlRpcDataValue]
-  type XmlRpcStruct = XmlRpcStructType[XmlRpcDataValue]
 
 
 
@@ -84,7 +82,6 @@ package object t4xmlrpc {
   implicit def DoubleToXmlRpcDouble(x:Double) = XmlRpcDouble(x)
   implicit def Base64ToXmlRpcBase64(x:Array[Byte]) = XmlRpcBase64(x)
   implicit def DateToXmlRpcDate(x:Date) = XmlRpcDateTime(x)
-  implicit def ListToXmlRpcArray(x:List[XmlRpcDataValue]) = XmlRpcArrayType(x)
-  implicit def TupleListToXmlRpcStruct(x:List[(String, XmlRpcDataValue)]) = XmlRpcStructType(x)
-  implicit def MapToXmlRpcStruct(x:Map[String, XmlRpcDataValue]) = XmlRpcStructType(x.toList)
+  implicit def ListToXmlRpcArray(x:List[XmlRpcDataValue]) = XmlRpcArray(x)
+  implicit def MapToXmlRpcStruct(x:immutable.Map[String, XmlRpcDataValue]) = XmlRpcStruct(x)
 }
