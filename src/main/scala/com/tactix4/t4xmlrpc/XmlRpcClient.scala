@@ -65,6 +65,7 @@ object XmlRpcClient extends Logging {
         case Success(r) => {
           try{
             val xmlResult = scala.xml.XML.loadString(r)
+            logger.debug("received message: " + xmlResult.toString)
             if ((xmlResult \ "fault").isEmpty) {
               result.complete(Try(XmlRpcResponseNormal(xmlResult)))
             } else {
