@@ -24,7 +24,6 @@ libraryDependencies ++= Seq(
 
 
 
-
 osgiSettings
 
 OsgiKeys.bundleSymbolicName := "Tactix4 XML-RPC"
