@@ -22,8 +22,6 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.0.9" % "test"
 )
 
-
-
 osgiSettings
 
 OsgiKeys.bundleSymbolicName := "Tactix4 XML-RPC"
