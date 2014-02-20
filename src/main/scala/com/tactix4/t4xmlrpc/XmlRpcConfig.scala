@@ -17,8 +17,6 @@
 
 package com.tactix4.t4xmlrpc
 
-import com.tactix4.t4xmlrpc.Exceptions.XmlRpcClientException
-
 /**
  * Class to hold config information for the current XML-RPC target host
  *
@@ -46,11 +44,6 @@ object XmlRpcConfig{
 object RPCProtocol extends Enumeration {
   import scala.language.implicitConversions
 
-  implicit def stringToRpcProtocol(s:String) : RPCProtocol.Value = s.toLowerCase match{
-    case "http" => RPC_HTTP
-    case "https"=> RPC_HTTPS
-    case x => throw new XmlRpcClientException("protocol: " + x + " not supported")
-  }
   val RPC_HTTP = Value("http")
   val RPC_HTTPS = Value("https")
 }

@@ -20,17 +20,20 @@ package com.tactix4
 import java.util.{TimeZone, Date}
 import scala.language.implicitConversions
 import collection._
-import com.tactix4.t4xmlrpc.Exceptions.XmlRpcParseException
 import java.text.{ParseException, SimpleDateFormat}
+import scalaz._
+import Scalaz._
+import com.typesafe.scalalogging.slf4j.Logging
+
 /**
  * @author max@tactix4.com
  *         6/1/13
  */
-package object t4xmlrpc {
-  type FaultCodeType = Either[XmlRpcString,XmlRpcInt]
-  type FaultStringType = XmlRpcString
+package object t4xmlrpc extends Logging{
 
 
+  type ErrorMessage = String
+  type FaultCode = XmlRpcDataType
 
   /** format date in ISO 8601 format taking into account timezone
     * http://stackoverflow.com/questions/3914404/how-to-get-current-moment-in-iso-8601-format
@@ -47,6 +50,11 @@ package object t4xmlrpc {
 
   }
 
+
+    def toLoggingOption[A](v:ValidationNel[ErrorMessage,A]) : Option[A] =  {
+      v.leftMap(l => logger.warn(l.toList.mkString(" | "))).map(_.some)  | None
+    }
+
   /**
    * parse string into an ISO 8601 date object
    *
@@ -54,26 +62,15 @@ package object t4xmlrpc {
    * @return date object representing the date
    * @throws XmlRpcParseException if string cannot be parsed
    */
-  def getDateFromISO8601String(value: String): Date = {
+  def getDateFromISO8601String(value: String): Validation[ErrorMessage,Date] = {
     val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
     date.setTimeZone(TimeZone.getTimeZone("UTC"))
     date.setLenient(false)
     try {
-      date.parse(value)
+      date.parse(value).success
+    } catch {
+      case e: ParseException => e.getMessage.fail
     }
-    catch {
-      case e: ParseException => throw new XmlRpcParseException("ParseException thrown trying to parse date value: " + value, e)
-    }
-  }
-
-  /**
-   * unescape a string - this is needed because scala.xml seems to escape all xml text
-   *
-   * @param s the string to be unescaped
-   * @return the unescaped string
-   */
-  def unescape(s:String) : String = {
-     s.replaceAll("&quot;", "\"")
   }
 
   implicit def IntToXmlRpcInt(x: Int) = XmlRpcInt(x)
@@ -81,7 +78,7 @@ package object t4xmlrpc {
   implicit def BooleanToXmlRpcBoolean(x:Boolean) = XmlRpcBoolean(x)
   implicit def DoubleToXmlRpcDouble(x:Double) = XmlRpcDouble(x)
   implicit def Base64ToXmlRpcBase64(x:Array[Byte]) = XmlRpcBase64(x)
-  implicit def DateToXmlRpcDate(x:Date) = XmlRpcDateTime(x)
-  implicit def ListToXmlRpcArray(x:List[XmlRpcDataValue]) = XmlRpcArray(x)
-  implicit def MapToXmlRpcStruct(x:immutable.Map[String, XmlRpcDataValue]) = XmlRpcStruct(x)
+  implicit def DateToXmlRpcDate(x:Date) = XmlRpcDate(x)
+  implicit def ListToXmlRpcArray(x:List[XmlRpcDataType]) = XmlRpcArray(x)
+  implicit def MapToXmlRpcStruct(x:immutable.Map[String, XmlRpcDataType]) = XmlRpcStruct(x)
 }

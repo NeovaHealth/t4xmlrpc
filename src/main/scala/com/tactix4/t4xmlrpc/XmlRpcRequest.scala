@@ -17,31 +17,21 @@
 
 package com.tactix4.t4xmlrpc
 
-import scala.xml.Unparsed
-
 /**
  * Represents a request sent to the XML-RPC server
  * @param methodName the name of the method to invoke
- * @param params the list of [[com.tactix4.t4xmlrpc.XmlRpcDataValue]] parameters to pass along to the method
+ * @param params the list of [[com.tactix4.t4xmlrpc.XmlRpcDataType]] parameters to pass along to the method
  * @author max@tactix4.com
  *         5/22/13
  */
-class XmlRpcRequest(methodName: String, params: List[XmlRpcDataValue]) {
-
+class XmlRpcRequest(methodName: String, params: List[XmlRpcDataType]) {
   /**
    * @param ps the list of paramters
    * @return a string representation of the parameters wrapped in an Unparsed object to avoid escaping
    */
-  def outputParams(ps: List[XmlRpcDataValue]): Unparsed = Unparsed(ps.map(
-    (p: XmlRpcDataValue) => <param>{XmlWriter.write(p)}</param>).mkString)
+  def outputParams(ps: List[XmlRpcDataType]): String = ps.map((d: XmlRpcDataType) => s"<param>${XmlWriter.write(d)}</param>").mkString
 
-  override def toString: String =
-    "<?xml version='1.0'?>" +
-      scala.xml.Utility.trim(<methodCall>
-        <methodName>
-          {methodName}
-        </methodName> <params>
-          {outputParams(params)}
-        </params>
-      </methodCall>).toString()
+  def toXmlString : String =  s"<?xml version='1.0'?><methodCall>" +
+    s"<methodName>$methodName</methodName>" +
+    s"<params>${outputParams(params)}</params></methodCall>"
 }

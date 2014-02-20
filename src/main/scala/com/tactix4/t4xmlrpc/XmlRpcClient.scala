@@ -17,13 +17,11 @@
 
 package com.tactix4.t4xmlrpc
 
-import scala.concurrent.{Future, ExecutionContext, Promise}
+import scala.concurrent.{Future, ExecutionContext}
 import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.Executors
-import scala.util.{Try, Success, Failure}
-import com.tactix4.t4xmlrpc.Exceptions.XmlRpcClientException
 import dispatch._
-import org.xml.sax.SAXParseException
+import scalaz.xml.Xml._
 
 /**
  * Main object of the library
@@ -31,12 +29,9 @@ import org.xml.sax.SAXParseException
  * Created by max@tactix4.com
  * 5/21/13
  */
-object XmlRpcClient extends Logging {
-
+object XmlRpcClient extends Logging with XmlRpcResponses {
 
   implicit val ec : ExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
-
-  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataValue*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
 
   /**
    * Send an XML-RPC request
@@ -45,39 +40,23 @@ object XmlRpcClient extends Logging {
    * @param params the list of parameters to supply to the method
    * @return a Future[XmlRpcResponse]
    */
-  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataValue]): Future[XmlRpcResponse] = {
+  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
+  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): dispatch.Future[XmlRpcResponse] = {
 
     val request = new XmlRpcRequest(methodName, params)
-    val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody(request.toString)
+    val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody request.toXmlString
 
-    val result = Promise[XmlRpcResponse]()
+    logger.debug("sending message headers: " + config.headers)
+    logger.debug("sending message body: " +request.toXmlString)
 
-    logger.info("sending message headers: " + config.headers)
-    logger.info("sending message body: " + request.toString)
-
-    Http(builder OK as.String).onComplete {
-
-      x => x match {
-        case Failure(e) => {
-          logger.error("Failed to send message: " + builder.toString)
-          result.failure(new XmlRpcClientException("Error connecting to XMLRPC Server: " + e.getMessage, e))
-        }
-        case Success(r) => {
-          try{
-            val xmlResult = scala.xml.XML.loadString(r)
-            logger.debug("received message: " + xmlResult.toString)
-            if ((xmlResult \ "fault").isEmpty) {
-              result.complete(Try(XmlRpcResponseNormal(xmlResult)))
-            } else {
-              result.complete(Try(XmlRpcResponseFault(xmlResult)))
-            }
-          }
-          catch {
-            case e:Throwable => result.failure(new XmlRpcClientException("Error reading server response: " + e.getMessage, e))
-          }
-      }
-    }
-    }
-    result.future
+    Http(builder OK as.String).fold(
+      (error: Throwable) => {
+        logger.error("Failed to send message: " + builder.toString +"\n" + error.getMessage)
+        throw new Exception(error.getMessage(), error)
+    },(success: String) =>{
+          val xmlResult = success.parseXml
+          logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
+          createXmlRpcResponse(xmlResult)
+      })
   }
 }
