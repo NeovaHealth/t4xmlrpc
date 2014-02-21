@@ -26,6 +26,7 @@ import scalaz.ValidationNel
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.xml.cursor.Cursor
 import java.io.Serializable
+import scala.collection.immutable
 
 /**
  * @author max@tactix4.com
@@ -61,6 +62,8 @@ import java.io.Serializable
 trait XmlRpcResponses extends Logging {
 
 
+
+
   type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
 
   type FaultCode = XmlRpcDataType
@@ -88,19 +91,33 @@ trait XmlRpcResponses extends Logging {
       XmlRpcResponseNormal(methodResponse).right
   }
 
-  case class XmlRpcResponseFault(faultCode: Option[FaultCode], faultString: Option[String]) extends XmlRpcResponses {
+  sealed abstract class XmlRpcResponseParent extends XmlRpcResponses{
+    val errors: Option[NonEmptyList[ErrorMessage]]
+  }
+  case class XmlRpcResponseFault(faultCode: Option[FaultCode], faultString: Option[String], override val errors:Option[NonEmptyList[ErrorMessage]] = None) extends XmlRpcResponseParent {
     override def toString: String =
       s"FaultCode: ${faultCode.map(_.toString) | "[ ]"}\nFaultString: ${faultString.map(_.toString) | "[ ]"}"
   }
 
-  case class XmlRpcResponseNormal(params: List[XmlRpcDataType]) extends XmlRpcResponses {
+  case class XmlRpcResponseNormal(params: List[XmlRpcDataType], override val errors:Option[NonEmptyList[ErrorMessage]] = None) extends XmlRpcResponseParent {
     override def toString: String = params.map(_.toString).mkString
   }
 
+  def appendOptions[G:Semigroup](o1:Option[G], o2: Option[G]): Option[G] = (o1, o2) match {
+    case (Some(l1), Some(l2)) => Some(implicitly[Semigroup[G]].append(l1,l2))
+    case (Some(l), _:None.type) => Some(l)
+    case (_:None.type, Some(l)) => Some(l)
+    case _ => None
+  }
 
   object XmlRpcResponseFault {
 
-    def apply(c: Option[Content]): XmlRpcResponseFault = new XmlRpcResponseFault(toLoggingOption(getFaultCode(c)), toLoggingOption(getFaultString(c)))
+    def apply(c: Option[Content]): XmlRpcResponseFault = {
+      val fc = getFaultCode(c).disjunction
+      val fs = getFaultString(c).disjunction
+
+      new XmlRpcResponseFault(fc.toOption,fs.toOption,appendOptions(~fs toOption, ~fc toOption))
+    }
 
 
     def getValue(oc: Option[Content], s: String): ValidationNel[ErrorMessage, Element] = {
@@ -144,12 +161,21 @@ trait XmlRpcResponses extends Logging {
 
   object XmlRpcResponseNormal {
 
-    def apply(c: Option[Content]): XmlRpcResponseNormal = new XmlRpcResponseNormal({
-      (for {
-        p <- getParams(c)
-        e <- p.map(elementToXmlDataType).success
-      } yield e.map(toLoggingOption).flatten) | Nil
-    })
+    def apply(c: Option[Content]): XmlRpcResponseNormal = {
+      val params: \/[ErrorMessage, List[Element]] =  getParams(c).disjunction
+      val xmlparams: List[ValidationNel[ErrorMessage, XmlRpcDataType]] = params.getOrElse(Nil).map(elementToXmlDataType)
+
+     val s: Option[NonEmptyList[ErrorMessage]] =  {
+       val l = xmlparams.map(_.swap.toOption).flatten
+       if(l.isEmpty) None
+       else l.sequenceU.map(_.mkString).some
+     }
+
+//        p <- getParams(c)
+//        e <- p.flatMap(elementToXmlDataType).success
+//      } yield e
+      new XmlRpcResponseNormal(xmlparams.map(_.toOption).flatten, s)
+    }
   }
 
   def getParams(co: Option[Content]): Validation[ErrorMessage, List[Element]] = {

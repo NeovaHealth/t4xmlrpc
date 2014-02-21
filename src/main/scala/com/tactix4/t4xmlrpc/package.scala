@@ -51,9 +51,6 @@ package object t4xmlrpc extends Logging{
   }
 
 
-    def toLoggingOption[A](v:ValidationNel[ErrorMessage,A]) : Option[A] =  {
-      v.leftMap(l => logger.warn(l.toList.mkString(" | "))).map(_.some)  | None
-    }
 
   /**
    * parse string into an ISO 8601 date object

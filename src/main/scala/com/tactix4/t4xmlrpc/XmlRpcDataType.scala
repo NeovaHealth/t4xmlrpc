@@ -19,6 +19,7 @@ package com.tactix4.t4xmlrpc
 import java.util.Date
 import scala.xml.NodeSeq
 import scalaz.Value
+import java.nio.charset.Charset
 
 
 /**
@@ -32,10 +33,10 @@ sealed trait XmlRpcDataType{
       i => i.toString,
       d => d.toString,
       d => d.toString,
-      b => new String(b),
+      b => new String(b,java.nio.charset.Charset.forName("UTF-8")),
       s => s.toString,
-      a => a.toString,
-      s => s.toString
+      a => a.toString(),
+      s => s.toString()
     )
   }
 

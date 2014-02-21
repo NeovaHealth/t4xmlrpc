@@ -2,14 +2,9 @@ name := "t4xmlrpc"
 
 organization := "com.tactix4"
 
-version := "1.1-SNAPSHOT"
+version := "1.2"
 
 scalaVersion := "2.10.2"
-
-resolvers ++= Seq(
-//  "Sonatype Releases" at "http://oss.sonatype.org/content/repositories/releases",
-  "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-)
 
 libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.0.5",
@@ -17,7 +12,7 @@ libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
   "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
   "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
-  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
+  "org.scalatest" %% "scalatest" % "2.0" % "test",
   "ch.qos.logback" % "logback-classic" % "1.0.9" % "test",
   "com.github.axel22" %% "scalameter" % "0.4" % "test"
 )
