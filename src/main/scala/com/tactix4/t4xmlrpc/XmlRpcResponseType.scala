@@ -22,11 +22,9 @@ import scalaz._
 import Scalaz._
 import scalaz.xml.{Element, Content}
 import scalaz.xml.Xml._
-import scalaz.ValidationNel
 import com.typesafe.scalalogging.slf4j.Logging
-import scalaz.xml.cursor.Cursor
-import java.io.Serializable
-import scala.collection.immutable
+import java.util.Date
+
 
 /**
  * @author max@tactix4.com
@@ -61,175 +59,210 @@ import scala.collection.immutable
 
 trait XmlRpcResponses extends Logging {
 
+  case class ParseResult[E, A](errors: List[E] = Nil, result: Option[A] = None) {
 
-
-
-  type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
-
-  type FaultCode = XmlRpcDataType
-
-  /**
-   * return the content that contains the methodResponse
-   * @param l the list of contents
-   * @return the content containing the methodResponse
-   */
-  def getMethodResponse(l: List[Content]): Option[Content] = {
-    l.find(_.elem exists (_.sname == "methodResponse"))
-  }
-
-  /**
-   * is the first child element called fault?
-   * @return a boolean
-   */
-  def isFault(o: Option[Content]): Boolean = o.exists(+_ findChildElementName ("fault" == _) isDefined)
-
-  def createXmlRpcResponse(c: List[Content]): XmlRpcResponse = {
-    val methodResponse = getMethodResponse(c)
-    if (isFault(methodResponse))
-      XmlRpcResponseFault(methodResponse).left
-    else
-      XmlRpcResponseNormal(methodResponse).right
-  }
-
-  sealed abstract class XmlRpcResponseParent extends XmlRpcResponses{
-    val errors: Option[NonEmptyList[ErrorMessage]]
-  }
-  case class XmlRpcResponseFault(faultCode: Option[FaultCode], faultString: Option[String], override val errors:Option[NonEmptyList[ErrorMessage]] = None) extends XmlRpcResponseParent {
-    override def toString: String =
-      s"FaultCode: ${faultCode.map(_.toString) | "[ ]"}\nFaultString: ${faultString.map(_.toString) | "[ ]"}"
-  }
-
-  case class XmlRpcResponseNormal(params: List[XmlRpcDataType], override val errors:Option[NonEmptyList[ErrorMessage]] = None) extends XmlRpcResponseParent {
-    override def toString: String = params.map(_.toString).mkString
-  }
-
-  def appendOptions[G:Semigroup](o1:Option[G], o2: Option[G]): Option[G] = (o1, o2) match {
-    case (Some(l1), Some(l2)) => Some(implicitly[Semigroup[G]].append(l1,l2))
-    case (Some(l), _:None.type) => Some(l)
-    case (_:None.type, Some(l)) => Some(l)
-    case _ => None
-  }
-
-  object XmlRpcResponseFault {
-
-    def apply(c: Option[Content]): XmlRpcResponseFault = {
-      val fc = getFaultCode(c).disjunction
-      val fs = getFaultString(c).disjunction
-
-      new XmlRpcResponseFault(fc.toOption,fs.toOption,appendOptions(~fs toOption, ~fc toOption))
+    def map[B](f: A => B): ParseResult[E, B] = {
+      ParseResult(errors, result.map(f))
+    }
+    def flatMap[B](f: A => ParseResult[E,B]) : ParseResult[E,B] = {
+      result.map(f).map(r => ParseResult(r.errors ++ errors,r.result)) | ParseResult(errors, None)
     }
 
-
-    def getValue(oc: Option[Content], s: String): ValidationNel[ErrorMessage, Element] = {
-      val value = for {
-        c <- oc
-        fc <- c.toCursor.findRec(_.current.elem exists (_.strContent.mkString == s))
-        p <- fc.parent
-        v <- p findChildElementName ("value" == _)
-        e <- v.elem
-      } yield e.successNel[String]
-
-      value | s"Unable to find value element for $s".failNel[Element]
-
+    def errorMap[F](f: E => F): ParseResult[F, A] = {
+      ParseResult(errors.map(f), result)
     }
 
-    //return the first child as an element or the current element
-    def getSubElementIfExists(e: Element): Element = {
-      e.toCursor.firstChild.flatMap(_.elem) | e
+    def bimap[B, F](g: E => F,f: A => B): ParseResult[F, B] = {
+      ParseResult(errors.map(g), result.map(f))
+    }
+
+    /** Apply a function in the environment of the success of this validation, accumulating errors. */
+    def ap[EE >: E, B](x: => ParseResult[EE, A => B])(implicit E: Semigroup[EE]): ParseResult[EE, B] = (this, x) match {
+      case (ParseResult(e, a), ParseResult(b,f))   => ParseResult(e++b,f.flatMap(z => a.map(y => z(y))))
+    }
+
+  }
+
+  object ParseResult {
+
+
+    implicit def ParseResultBiTraverse: Bitraverse[ParseResult] = new Bitraverse[ParseResult] {
+      override def bimap[A, B, C, D](fab: ParseResult[A, B])(f: A => C, g: B => D) = fab.bimap(f,g)
+      def bitraverseImpl[G[+ _] : Applicative, A, B, C, D](fab: ParseResult[A, B]) (f: A => G[C], g: B => G[D]) = fab.bitraverse(f, g)
+    }
+
+    implicit def ParseResultApplicative[L: Semigroup]: Applicative[({type l[a] = ParseResult[L, a]})#l] = new Applicative[({type l[a] = ParseResult[L, a]})#l] {
+      def point[A](a: => A) = ParseResult(Nil,Some(a))
+      def ap[A, B](fa: => ParseResult[L, A])(f: => ParseResult[L, A => B]) = fa ap f
+    }
+    implicit def ParseResultMonad[E:Semigroup]:Monad[({type l[a] = ParseResult[E, a]})#l] = new Monad[({type l[a] = ParseResult[E, a]})#l]{
+      override def point[A](a: => A) = ParseResult(Nil, Some(a))
+      def bind[A, B](pr: ParseResult[E, A])(f: A => ParseResult[E, B]) = pr flatMap f
+    }
+  }
+
+    type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
+
+    type FaultCode = XmlRpcDataType
+
+    /**
+     * return the content that contains the methodResponse
+     * @param l the list of contents
+     * @return the content containing the methodResponse
+     */
+    def getMethodResponse(l: List[Content]): Option[Content] = {
+      l.find(_.elem exists (_.sname == "methodResponse"))
     }
 
     /**
-     *
-     * grab the value from the faultCode <value> element and parse as an int if labeled as such
-     * otherwise parse as a string
-     * @param c
-     * @return
+     * is the first child element called fault?
+     * @return a boolean
      */
-    def getFaultCode(c: Option[Content]): ValidationNel[ErrorMessage, FaultCode] = {
-      getValue(c, "faultCode").flatMap(elem => elementToXmlDataType(elem))
+    def isFault(o: Option[Content]): Boolean = o.exists(+_ findChildElementName ("fault" == _) isDefined)
+
+    def createXmlRpcResponse(c: List[Content]): XmlRpcResponse = {
+      val methodResponse = getMethodResponse(c)
+      if (isFault(methodResponse))
+        XmlRpcResponseFault(methodResponse).left
+      else
+        XmlRpcResponseNormal(methodResponse).right
     }
 
-    /**
-     * grab the value from the faultCode <value> element and parse as an int if labeled as such
-     * otherwise parse as a string
-     */
-    def getFaultString(c: Option[Content]): ValidationNel[ErrorMessage, String] = {
-      getValue(c, "faultString").map(elem => getSubElementIfExists(elem).strContent.mkString)
+    sealed abstract class XmlRpcResponseType extends XmlRpcResponses {
+      val errors: Seq[ErrorMessage]
     }
-  }
 
-
-  object XmlRpcResponseNormal {
-
-    def apply(c: Option[Content]): XmlRpcResponseNormal = {
-      val params: \/[ErrorMessage, List[Element]] =  getParams(c).disjunction
-      val xmlparams: List[ValidationNel[ErrorMessage, XmlRpcDataType]] = params.getOrElse(Nil).map(elementToXmlDataType)
-
-     val s: Option[NonEmptyList[ErrorMessage]] =  {
-       val l = xmlparams.map(_.swap.toOption).flatten
-       if(l.isEmpty) None
-       else l.sequenceU.map(_.mkString).some
-     }
-
-//        p <- getParams(c)
-//        e <- p.flatMap(elementToXmlDataType).success
-//      } yield e
-      new XmlRpcResponseNormal(xmlparams.map(_.toOption).flatten, s)
+    final case class XmlRpcResponseFault(faultCode: Option[FaultCode], faultString: Option[String], override val errors: List[ErrorMessage] = Nil) extends XmlRpcResponseType {
+      override def toString: String =
+        s"FaultCode: ${faultCode.map(_.toString) | "[ ]"}\nFaultString: ${faultString.map(_.toString) | "[ ]"}"
     }
-  }
 
-  def getParams(co: Option[Content]): Validation[ErrorMessage, List[Element]] = {
-    val ps = for {
-      c <- co
-      params <- (+c) findChildElementName ("params" == _)
-      parame <- params.current.elem
-    } yield parame.children.map(_.children.headOption).flatten
-    ps.map(_.success[ErrorMessage]) | s"Could not parse params:${co.map(_ sxprints pretty)} ".fail[List[Element]]
-  }
+    final case class XmlRpcResponseNormal(params: Seq[XmlRpcDataType], override val errors: Seq[ErrorMessage] = Nil) extends XmlRpcResponseType {
+      override def toString: String = params.map(_.toString).mkString
+    }
 
-  def memberToTuple(e: Element): ValidationNel[ErrorMessage, (String, XmlRpcDataType)] = {
-    val tuple = for {
-      n <- e.toCursor.findChildElementName("name" == _)
-      v <- e.toCursor.findChildElementName("value" == _)
-      ne <- n.elem
-      ve <- v.elem
-    } yield ne.strContent.mkString -> ve
 
-    tuple.map(s => elementToXmlDataType(s._2).map(d => (s._1, d))) | s"Member: ${e.content.map(_ sxprints pretty).mkString(" ")} \n could not be parsed".failNel[(String, XmlRpcDataType)]
+    object XmlRpcResponseFault {
 
-  }
-
-  def parseBoolean(b:String) : ValidationNel[ErrorMessage, Boolean] = {
-    val trimmed = b.trim.toLowerCase
-    val trues = List("true","1")
-    val falses = List("false","0")
-    if(trues.exists(_ == trimmed)) true.success
-    else if(falses.exists(_ == trimmed)) false.success
-    else s"Could not parse Boolean $b".failNel
-  }
-
-  def elementToXmlDataType(e: Element): ValidationNel[ErrorMessage, XmlRpcDataType] = {
-
-    val v = for {
-      c:Cursor <- e.toCursor.findChildOr(_.current.elem exists(_ => true), e.toCursor).some
-      elem <- c.current.elem
-    } yield (elem.sname.toLowerCase, elem)
-
-    v.map(t => t._1 match {
-      case "value" | "string" => XmlRpcString(t._2.strContent.mkString).successNel[ErrorMessage]
-      case "base64" => XmlRpcBase64(t._2.strContent.mkString.getBytes).successNel[ErrorMessage]
-      case "int" | "i4" => t._2.strContent.mkString.parseInt.map(i => XmlRpcInt(i)).leftMap("Unable to parse Int " + _.getMessage).toValidationNel
-      case "boolean" => parseBoolean(t._2.strContent.mkString).map(b => XmlRpcBoolean(b))
-      case "double" => t._2.strContent.mkString.parseDouble.map(d => XmlRpcDouble(d)).leftMap("Unable to parse Double " + _.getMessage).toValidationNel
-      case "date" => getDateFromISO8601String(t._2.strContent.mkString).map(d => XmlRpcDate(d)).toValidationNel
-      case "array" => {
-        val s = t._2.children.headOption.map(_.children.map(elementToXmlDataType)) getOrElse List("Empty array".failNel[XmlRpcDataType])
-        s.sequenceU.map(XmlRpcArray)
+      def apply(c: Option[Content]): XmlRpcResponseFault = {
+        val fc = getFaultCode(c)
+        val fs = getFaultString(c)
+        new XmlRpcResponseFault(fc.result, fs.result, fc.errors ++ fs.errors)
       }
-      case "struct" => t._2.children.map(memberToTuple).sequenceU.map(s => XmlRpcStruct(s.toMap))
-      case f => s"Unsupported element type: $f".failNel[XmlRpcDataType]
-    }) getOrElse s"unable to parse element: ${e.content.map(_ sxprints pretty).mkString(" ")}".failNel[XmlRpcDataType]
+
+
+      def getValue(oc: Option[Content], s: String): ParseResult[ErrorMessage,Element] = {
+        val value = for {
+          c <- oc
+          fc <- c.toCursor.findRec(_.current.elem exists (_.strContent.mkString == s))
+          p <- fc.parent
+          v <- p findChildElementName ("value" == _)
+          e <- v.elem
+        } yield e
+
+        value match {
+          case Some(_:Element) => ParseResult(Nil,value)
+          case None => ParseResult(List(s"Unable to find value element for $s"),None)
+        }
+      }
+
+      //return the first child as an element or the current element
+      def getSubElementIfExists(e: Element): Element = {
+        e.toCursor.firstChild.flatMap(_.elem) | e
+      }
+
+      /**
+       *
+       * grab the value from the faultCode <value> element and parse as an int if labeled as such
+       * otherwise parse as a string
+       * @param c
+       * @return
+       */
+      def getFaultCode(c: Option[Content]): ParseResult[ErrorMessage,FaultCode] = {
+        getValue(c, "faultCode").flatMap(element2XmlDataType)
+      }
+
+      /**
+       * grab the value from the faultCode <value> element and parse as an int if labeled as such
+       * otherwise parse as a string
+       */
+      def getFaultString(c: Option[Content]): ParseResult[ErrorMessage, String] = {
+        getValue(c, "faultString").map(e => getSubElementIfExists(e).strContent.mkString)
+      }
+    }
+
+
+    object XmlRpcResponseNormal {
+
+      def apply(c: Option[Content]): XmlRpcResponseNormal = {
+        val params = getParams(c).flatMap(es => reduceToList(es.map(element2XmlDataType)))
+        new XmlRpcResponseNormal(~(params.result), params.errors)
+      }
+    }
+
+
+  def reduceToList[E,A](l:List[ParseResult[E,A]]) = l.foldRight(ParseResult(Nil:List[E],Some(Nil:List[A])))((x, xs) => ParseResult(x.errors ++ xs.errors, x.result.map(y => y :: (~(xs.result)))))
+
+    def getParams(co: Option[Content]): ParseResult[ErrorMessage, List[Element]] = {
+      val ps = for {
+        content <- co
+        params <- content.toCursor.findChildElementName("params" == _)
+        parame <- params.current.elem
+      } yield parame.children.map(_.children.headOption).flatten.toList
+
+      ParseResult(ps.fold(List(s"Could not parse params:${co.map(_ sxprints pretty)}"))(x => Nil), ps)
+    }
+
+    def memberToTuple(e: Element): ParseResult[ErrorMessage,(String, XmlRpcDataType)] = {
+      val tuple = for {
+        n <- e.toCursor.findChildElementName("name" == _)
+        v <- e.toCursor.findChildElementName("value" == _)
+        ne <- n.elem
+        ve <- v.elem
+      } yield ne.strContent.mkString -> ve
+
+      val t = tuple.map(s => element2XmlDataType(s._2).map(x => s._1 -> x))
+
+      t | ParseResult( errors = List(s"Member: ${e.content.map(_ sxprints pretty).mkString(" ")} \n could not be parsed"))
+    }
+
+    def parseBoolean(b: String):ParseResult[ErrorMessage, Boolean] = {
+      val trimmed = b.trim.toLowerCase
+      val trues = List("true", "1")
+      val falses = List("false", "0")
+      if (trues.exists(_ == trimmed)) ParseResult(result = true.some)
+      else if (falses.exists(_ == trimmed)) ParseResult(result = false.some)
+      else ParseResult(errors = List(s"Could not parse Boolean $b"))
+    }
+
+
+    def element2XmlDataType(e: Element): ParseResult[ErrorMessage,XmlRpcDataType] = {
+      val value: Element = e.toCursor.firstChildOr(e.toCursor).current.elemOr(e)
+      val content = value.strContent.mkString
+      value.sname match {
+        case "value" | "string" => ParseResult(result = XmlRpcString(content).some)
+        case "int" | "i4" => content.parseInt.fold(
+          exception => ParseResult(errors = List("Unable to parse int: " + content)),
+          (i: Int) => ParseResult(result = XmlRpcInt(i).some))
+        case "boolean" => parseBoolean(content).map(XmlRpcBoolean)
+        case "double" => content.parseDouble.fold(
+          exception => ParseResult(errors = List("Unable to parse Double " + exception.getMessage)),
+          (d: Double) => ParseResult(result = XmlRpcDouble(d).some))
+        case "date" => getDateFromISO8601String(content).fold(
+          error => ParseResult(errors = List(error)),
+          (d: Date) => ParseResult(result = XmlRpcDate(d).some))
+        case "array" => {
+          val a = value.children.headOption.map(_.children.map(element2XmlDataType)) | Nil
+          reduceToList(a).map(XmlRpcArray)
+        }
+        case "struct" => {
+          val a = value.children.map(memberToTuple)
+          reduceToList(a).map(l => XmlRpcStruct(l.toMap))
+        }
+        case "base64" => ParseResult(result=XmlRpcBase64(content.getBytes("UTF-8")).some)
+        case unknown => ParseResult(errors = List(s"Unsupported element type: $unknown"))
+      }
+
+    }
+
   }
-
-
-}

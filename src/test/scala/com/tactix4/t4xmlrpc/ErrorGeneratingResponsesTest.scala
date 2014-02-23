@@ -24,7 +24,7 @@ class ErrorGeneratingResponsesTest extends FunSuite with PropertyChecks with Xml
         (normal: XmlRpcResponseNormal) => if (normal.errors.isEmpty && !node.isEmpty) fail("Errors were not generated for input: " + (node.head sxprints pretty)))
     }
   }
-  test("All invalid xmlrpc faults should be parsed with no errors") {
+  test("All invalid xmlrpc faults should be parsed with errors") {
     forAll(XMLRPCResponseGenerator.arbitraryInValidXmlRpcFault.arbitrary) {
       (node: List[Content]) => createXmlRpcResponse(node).fold(
         (fault: XmlRpcResponseFault) =>  if (fault.errors.isEmpty && !node.isEmpty) fail("Errors were not generated for input: " + (node.head sxprints pretty)),

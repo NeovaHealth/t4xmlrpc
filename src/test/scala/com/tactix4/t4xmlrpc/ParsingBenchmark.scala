@@ -47,7 +47,7 @@ object ParsingBenchmark extends PerformanceTest.Regression with XmlRpcResponses 
     f <- XMLRPCResponseGenerator.randomInValidFaultGen :| "InValid Fault Response"
   } yield f
 
-  val sizes = Gen.range("size")(10, 510, 50)
+  val sizes = Gen.range("size")(10, 1010, 50)
 
   performance of "XML-RPC response parsing" in {
     performance of "createXmlRpcResponse" in {

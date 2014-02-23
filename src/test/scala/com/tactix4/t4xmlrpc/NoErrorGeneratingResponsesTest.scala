@@ -19,7 +19,7 @@ class NoErrorGeneratingResponsesTest extends FunSuite with PropertyChecks with X
     forAll(XMLRPCResponseGenerator.arbitraryValidXmlRpcResponse.arbitrary) {
       (node: List[Content]) => createXmlRpcResponse(node).fold(
         _ => fail("Normal Responses recognised as a fault") ,
-      (normal: XmlRpcResponseNormal) => if(normal.errors.isDefined) fail("Errors were generated: " + normal.errors.mkString(" ")))
+      (normal: XmlRpcResponseNormal) => if(!normal.errors.isEmpty) fail("Errors were generated: " + normal.errors.mkString(" ")))
       }
     }
 

@@ -31,7 +31,7 @@ parallelExecution in Test := false
 
 osgiSettings
 
-OsgiKeys.bundleSymbolicName := "Tactix4 XML-RPC"
+OsgiKeys.bundleSymbolicName := "Tactix4 XML-RPC Client"
 
 OsgiKeys.importPackage ++= Seq(
     "net.databinder.dispatch.*",
@@ -41,7 +41,6 @@ OsgiKeys.importPackage ++= Seq(
 )
 
 OsgiKeys.exportPackage ++= Seq(
-    "com.tactix4.t4xmlrpc",
-    "com.tactix4.t4xmlrpc.Exceptions"
+    "com.tactix4.t4xmlrpc"
 )
 
