@@ -2,7 +2,7 @@ name := "t4xmlrpc"
 
 organization := "com.tactix4"
 
-version := "1.2"
+version := "2.0"
 
 scalaVersion := "2.10.2"
 
