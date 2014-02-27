@@ -22,6 +22,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.Executors
 import dispatch._
 import scalaz.xml.Xml._
+import scala.util.control.Exception.allCatch
 
 /**
  * Main object of the library
@@ -49,14 +50,14 @@ object XmlRpcClient extends Logging with XmlRpcResponses {
     logger.debug("sending message headers: " + config.headers)
     logger.debug("sending message body: " +request.toXmlString)
 
-    Http(builder OK as.String).fold(
-      (error: Throwable) => {
-        logger.error("Failed to send message: " + builder.toString +"\n" + error.getMessage)
-        throw new Exception(error.getMessage(), error)
-    },(success: String) =>{
+    try{
+      Http(builder OK as.String).map((success: String) => {
           val xmlResult = success.parseXml
           logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
           createXmlRpcResponse(xmlResult)
-      })
+        })
+    } catch {
+      case e: Throwable => Future.failed(e)
+    }
   }
 }
