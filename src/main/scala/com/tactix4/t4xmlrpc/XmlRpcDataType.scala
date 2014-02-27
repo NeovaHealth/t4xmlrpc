@@ -98,7 +98,7 @@ object XmlWriter {
       case Nil    => acc.mkString
       case x::xs  => loop(xs, write(x)::acc)
     }
-    loop(a,Nil)
+    loop(a.reverse,Nil)
   }
 
   def writeMap(m:Map[String,XmlRpcDataType]) : String = {
@@ -109,7 +109,7 @@ object XmlWriter {
       case Nil => acc.mkString
       case ((x,y)::xs) => loop(xs,tupleToMember((x,y))::acc)
     }
-    loop(m.toList,Nil)
+    loop(m.toList.reverse,Nil)
   }
 }
 
