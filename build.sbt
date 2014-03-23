@@ -1,13 +1,16 @@
 import com.typesafe.sbt.osgi.OsgiKeys
 import com.typesafe.sbt.osgi.SbtOsgi.osgiSettings
+import sbtrelease.ReleasePlugin._
 
 name := "t4xmlrpc"
 
 organization := "com.tactix4"
 
-version := "2.0-SNAPSHOT"
+version := "2.0"
 
 scalaVersion := "2.10.3"
+
+releaseSettings
 
 libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.0.5",

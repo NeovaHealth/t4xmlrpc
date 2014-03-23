@@ -79,6 +79,14 @@ sealed trait XmlRpcDataType{
   def isArray :Boolean  = this.fold(_ => false,_ => false,_ => false,_ => false,_ => false,_ => false,_ => true, _ => false)
   def isStruct :Boolean = this.fold(_ => false,_ => false,_ => false,_ => false,_ => false,_ => false,_ => false,_ => true )
 
+  def asBool[X](f: Boolean => X): Option[X] = bool.map(f)
+  def asInt[X](f: Int => X) = int.map(f)
+  def asDouble[X](f: Double => X) = double.map(f)
+  def asDate[X](f: Date => X) = date.map(f)
+  def asBase64[X](f: Array[Byte] => X) = base64.map(f)
+  def asString[X](f: String => X) = string.map(f)
+  def asArray[X](f: List[XmlRpcDataType] => X) = array.map(f)
+  def asStruct[X](f: Map[String,XmlRpcDataType] => X) = struct.map(f)
 }
 
 object XmlWriter {
