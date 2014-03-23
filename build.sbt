@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
 
 testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework")
 
-initialCommands in console :=
+initialCommands in console in Test :=
   """import com.tactix4.t4xmlrpc._;
     |import com.tactix4.t4xmlrpc.util.XMLRPCResponseGenerator
     |import scalaz._

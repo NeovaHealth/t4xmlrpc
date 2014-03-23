@@ -5,6 +5,13 @@
 
 This library provides a simple and easy to use xml-rpc implementation in scala.
 
+### 2.0 Release ###
+
+This version is a significant re-write of the library, written in a pure-functional style, and making
+use of the scalaz library. In keeping with the scalaz.xml philosophy, parsing of inbound xmlrpc data will
+not fail fast, but rather it will interpret everything it can, while accumulating any errors in parsing.
+See the ParseResult case class for further details.
+
 ### Motivation
 
 Existing xml-rpc libraries from the java world (such as [apache's offering](http://ws.apache.org/xmlrpc/))
@@ -12,23 +19,22 @@ end up tossing around arrays of Objects, which in the typesafe world of scala, i
 not ideal and quite messy to use.
 
 Therefore we decided to implement our own version of xml-rpc, casting to type as
-early as possible and making use of scala 2.10's Futures.
+early as possible and making use of scala 2.10's Futures as well as the scalaz library.
 
 ## Use case
 
 ```scala
-val config:XmlRpcConfig = XmlRpcConfig("http", "localhost", 8888, "/pathToHit")
 
-val result:Future[XmlRpcResponse] = XmlRpcClient.request(config, "someMethod", "someParameter")
+val config = XmlRpcConfig("http", "localhost", 8888, "/pathToHit")
 
-result.onComplete( _ match {
-   case Success(r) => r match {
-      case s: XmlRpcResponseNormal => println("Got a normal response: " + s)
-      case s: XmlRpcResponseFault  => println("Got a fault response: " + s)
-   }
-   case Failure(e) => println("Something went wrong: " + e.getMessage())
-   })
-}
+val result = XmlRpcClient.request(config, "someMethod", "someParameter")
+
+result.map(
+    _.fold(
+        error  => println(s"Got back a fault: $error"),
+        result => println(s"Got back a result: $result")
+    )
+)
 
 ```
 
