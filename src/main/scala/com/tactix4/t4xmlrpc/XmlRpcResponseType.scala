@@ -38,7 +38,7 @@ import java.util.Date
  * the error code should be an Int as per http://t4xmlrpc.scripting.com/spec
  * however pythons XML-RPC library decided to use a string instead :/
  * http://docs.python.org/2/library/xmlrpclib.html#fault-objects
- * for this reason we allow a string too, hence why faultCode has type Either[XmlRpcString.XmlRpcInt]
+ * Hence why faultCode has type XmlRpcDataType
  * <methodResponse>
  * <fault>
  * <value>

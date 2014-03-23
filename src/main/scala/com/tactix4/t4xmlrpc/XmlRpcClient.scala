@@ -42,7 +42,7 @@ object XmlRpcClient extends Logging with XmlRpcResponses {
    * @return a Future[XmlRpcResponse]
    */
   def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
-  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): dispatch.Future[XmlRpcResponse] = {
+  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponse] = {
 
     val request = new XmlRpcRequest(methodName, params)
     val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody request.toXmlString
