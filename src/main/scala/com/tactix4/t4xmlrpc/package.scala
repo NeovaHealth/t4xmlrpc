@@ -31,6 +31,9 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 package object t4xmlrpc extends Logging{
 
+    val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
+    date.setTimeZone(TimeZone.getTimeZone("UTC"))
+    date.setLenient(false)
 
   type ErrorMessage = String
   type FaultCode = XmlRpcDataType
@@ -42,12 +45,8 @@ package object t4xmlrpc extends Logging{
     * @return string representation of the date
     */
   def getDateAsISO8601String(value: Date): String = {
-    val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
-    df.setTimeZone(TimeZone.getTimeZone("UTC"))
-    df.setLenient(true)
-    val t = df.format(value)
-    df.format(df.parse(t))
-
+    val t = date.format(value)
+    date.format(date.parse(t))
   }
 
 
@@ -60,22 +59,12 @@ package object t4xmlrpc extends Logging{
    * @throws XmlRpcParseException if string cannot be parsed
    */
   def getDateFromISO8601String(value: String): Validation[ErrorMessage,Date] = {
-    val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
-    date.setTimeZone(TimeZone.getTimeZone("UTC"))
-    date.setLenient(false)
     try {
       date.parse(value).success
-    } catch {
+    }
+    catch {
       case e: ParseException => e.getMessage.fail
     }
   }
 
-  implicit def IntToXmlRpcInt(x: Int) = XmlRpcInt(x)
-  implicit def StringToXmlRpcString(x: String) = XmlRpcString(x)
-  implicit def BooleanToXmlRpcBoolean(x:Boolean) = XmlRpcBoolean(x)
-  implicit def DoubleToXmlRpcDouble(x:Double) = XmlRpcDouble(x)
-  implicit def Base64ToXmlRpcBase64(x:Array[Byte]) = XmlRpcBase64(x)
-  implicit def DateToXmlRpcDate(x:Date) = XmlRpcDate(x)
-  implicit def ListToXmlRpcArray(x:List[XmlRpcDataType]) = XmlRpcArray(x)
-  implicit def MapToXmlRpcStruct(x:immutable.Map[String, XmlRpcDataType]) = XmlRpcStruct(x)
 }

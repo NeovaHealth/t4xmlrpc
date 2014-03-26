@@ -22,6 +22,9 @@ import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.Executors
 import dispatch._
 import scalaz.xml.Xml._
+import scalaz._
+import Scalaz._
+import scala.util.control.Exception._
 import scala.util.control.Exception.allCatch
 
 /**
@@ -34,6 +37,13 @@ object XmlRpcClient extends Logging with XmlRpcResponses {
 
   implicit val ec : ExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
 
+  def outputParams(ps: List[XmlRpcDataType]): String = ps.map(d => s"<param>${XmlWriter.write(d)}</param>").mkString
+
+  def toRequestString(name:String, params:List[XmlRpcDataType]) : String =
+    s"<?xml version='1.0'?><methodCall>" +
+    s"<methodName>$name</methodName>" +
+    s"<params>${outputParams(params)}</params></methodCall>"
+
   /**
    * Send an XML-RPC request
    * @param config the configuration to use
@@ -44,20 +54,15 @@ object XmlRpcClient extends Logging with XmlRpcResponses {
   def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
   def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponse] = {
 
-    val request = new XmlRpcRequest(methodName, params)
-    val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody request.toXmlString
-
-    logger.debug("sending message headers: " + config.headers)
-    logger.debug("sending message body: " +request.toXmlString)
+    val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody toRequestString(methodName,params)
 
     try{
-      Http(builder OK as.String).map((success: String) => {
-          val xmlResult = success.parseXml
-          logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
-          createXmlRpcResponse(xmlResult)
-        })
+      Http(builder OK as.String).map(_.parseXml |> createXmlRpcResponse)
     } catch {
-      case e: Throwable => Future.failed(e)
+      case e:Throwable => Future.failed(e)
     }
+
+
+
   }
 }

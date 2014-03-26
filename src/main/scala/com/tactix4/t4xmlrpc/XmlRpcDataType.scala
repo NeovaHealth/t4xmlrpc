@@ -87,16 +87,26 @@ sealed trait XmlRpcDataType{
   def asString[X](f: String => X) = string.map(f)
   def asArray[X](f: List[XmlRpcDataType] => X) = array.map(f)
   def asStruct[X](f: Map[String,XmlRpcDataType] => X) = struct.map(f)
+
+  implicit case class XmlRpcInt(value: Int) extends XmlRpcDataType
+  implicit case class XmlRpcBoolean(value: Boolean) extends XmlRpcDataType
+  implicit case class XmlRpcString(value: String) extends XmlRpcDataType
+  implicit case class XmlRpcDouble(value: Double) extends XmlRpcDataType
+  implicit case class XmlRpcDate(value: Date) extends XmlRpcDataType
+  implicit case class XmlRpcBase64(value: Array[Byte]) extends XmlRpcDataType
+  implicit case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType
+  implicit case class XmlRpcStruct(value: Map[String, XmlRpcDataType]) extends XmlRpcDataType
+
 }
 
-object XmlWriter {
+object XmlWriter extends XmlRpcDataType{
 
   def write(p:XmlRpcDataType) :String =  p match {
     case XmlRpcInt(v)         => s"<value><int>$v</int></value>"
     case XmlRpcDouble(d)      => s"<value><double>$d</double></value>"
     case XmlRpcString(s)      => s"<value><string>$s</string></value>"
     case XmlRpcBoolean(b)     => s"<value><boolean>${if(b) 1 else 0}</boolean></value>"
-    case XmlRpcBase64(b)      => s"<value><base64>${new String(b.value)}</base64></value>"
+    case XmlRpcBase64(b)      => s"<value><base64>${new String(b)}</base64></value>"
     case XmlRpcDate(d)        => s"<value><date>${getDateAsISO8601String(d)}</date></value>"
     case XmlRpcArray(a)       => s"<value><array><data>${writeArray(a)}</data></array></value>"
     case XmlRpcStruct(s)      => s"<value><struct>${writeMap(s)}</struct></value>"
@@ -122,12 +132,4 @@ object XmlWriter {
 }
 
 
-case class XmlRpcInt(value: Int) extends XmlRpcDataType
-case class XmlRpcBoolean(value: Boolean) extends XmlRpcDataType
-case class XmlRpcString(value: String) extends XmlRpcDataType
-case class XmlRpcDouble(value: Double) extends XmlRpcDataType
-case class XmlRpcDate(value: Date) extends XmlRpcDataType
-case class XmlRpcBase64(value: Array[Byte]) extends XmlRpcDataType
-case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType
-case class XmlRpcStruct(value: Map[String, XmlRpcDataType]) extends XmlRpcDataType
 

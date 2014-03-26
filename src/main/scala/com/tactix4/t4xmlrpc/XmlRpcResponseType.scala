@@ -57,7 +57,7 @@ import java.util.Date
  * </ methodResponse>
  */
 
-trait XmlRpcResponses extends Logging {
+trait XmlRpcResponses extends Logging with XmlRpcDataType{
 
   /**
    * Result type that accumulates errors and results as it flatMaps
