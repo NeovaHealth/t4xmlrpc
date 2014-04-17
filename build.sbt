@@ -1,6 +1,5 @@
 import com.typesafe.sbt.osgi.OsgiKeys
 import com.typesafe.sbt.osgi.SbtOsgi.osgiSettings
-import sbtrelease.ReleasePlugin._
 
 name := "t4xmlrpc"
 
@@ -10,7 +9,7 @@ version := "2.0"
 
 scalaVersion := "2.10.3"
 
-releaseSettings
+publishMavenStyle := true
 
 libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.0.5",
@@ -22,6 +21,36 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.0.9" % "test",
   "com.github.axel22" %% "scalameter" % "0.4" % "test"
 )
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+
+pomExtra := (
+  <url>https://github.com/Tactix4/t4xmlrpc</url>
+  <licenses>
+    <license>
+      <name>AGPL</name>
+        <url>http://www.gnu.org/licenses/agpl-3.0.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>git@github.com:Tactix4/t4xmlrpc.git</url>
+    <connection>scm:git:git@github.com:Tactix4/t4xmlrpc.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <name>Max Worgan</name>
+      <email>max@tactix4.com</email>
+      <organization>Tactix4 Ltd</organization>
+      <organizationUrl>http://www.tactix4.com</organizationUrl>
+    </developer>
+  </developers>)
 
 testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework")
 
@@ -49,4 +78,3 @@ OsgiKeys.importPackage ++= Seq(
 OsgiKeys.exportPackage ++= Seq(
     "com.tactix4.t4xmlrpc"
 )
-
