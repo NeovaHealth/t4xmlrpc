@@ -5,7 +5,7 @@ name := "t4xmlrpc"
 
 organization := "com.tactix4"
 
-version := "2.0"
+version := "2.0.1"
 
 scalaVersion := "2.10.3"
 
@@ -66,9 +66,10 @@ parallelExecution in Test := false
 
 osgiSettings
 
-OsgiKeys.bundleSymbolicName := "Tactix4 XML-RPC Client"
-
 OsgiKeys.importPackage ++= Seq(
+    "scalaz.*",
+    "scalaz.xml.*",
+    "com.typesafe.scalalogging.*",
     "net.databinder.dispatch.*",
     "io.netty.*",
     "com.ning.http.client.*",
