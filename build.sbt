@@ -22,7 +22,6 @@ libraryDependencies ++= Seq(
   "com.github.axel22" %% "scalameter" % "0.4" % "test"
 )
 
-
 pomExtra := (
   <url>https://github.com/Tactix4/t4xmlrpc</url>
   <licenses>
