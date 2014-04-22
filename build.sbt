@@ -12,8 +12,8 @@ scalaVersion := "2.10.3"
 publishMavenStyle := true
 
 libraryDependencies ++= Seq(
-  "org.scalaz" %% "scalaz-core" % "7.0.5",
-  "org.scalaz" %% "scalaz-xml" % "7.0.5",
+  "org.scalaz" %% "scalaz-core" % "7.0.6",
+  "org.scalaz" %% "scalaz-xml" % "7.0.6",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
   "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
   "org.scalacheck" %% "scalacheck" % "1.10.1" % "test",
@@ -21,14 +21,6 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.0.9" % "test",
   "com.github.axel22" %% "scalameter" % "0.4" % "test"
 )
-
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
 
 pomExtra := (
   <url>https://github.com/Tactix4/t4xmlrpc</url>
