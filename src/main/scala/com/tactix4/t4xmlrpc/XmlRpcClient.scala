@@ -18,11 +18,11 @@
 package com.tactix4.t4xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext}
-import com.typesafe.scalalogging.slf4j.Logging
-import java.util.concurrent.Executors
+import com.typesafe.scalalogging.slf4j.LazyLogging
+import java.util.concurrent.{Executor, Executors}
 import dispatch._
 import scalaz.xml.Xml._
-import scala.util.control.Exception.allCatch
+import scalaz.syntax.std.option._
 
 /**
  * Main object of the library
@@ -30,9 +30,16 @@ import scala.util.control.Exception.allCatch
  * Created by max@tactix4.com
  * 5/21/13
  */
-object XmlRpcClient extends Logging with XmlRpcResponses {
+class XmlRpcClient(e: Option[Executor] = None) extends LazyLogging with XmlRpcResponses {
 
-  implicit val ec : ExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
+  implicit val ec : ExecutionContext = e.map(ExecutionContext.fromExecutor) | ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
+
+  def outputParams(ps: List[XmlRpcDataType]): String = ps.map(d => s"<param>${XmlWriter.write(d)}</param>").mkString
+
+  def toRequestString(name:String, params:List[XmlRpcDataType]) : String =
+    s"<?xml version='1.0'?><methodCall>" +
+    s"<methodName>$name</methodName>" +
+    s"<params>${outputParams(params)}</params></methodCall>"
 
   /**
    * Send an XML-RPC request
@@ -44,11 +51,10 @@ object XmlRpcClient extends Logging with XmlRpcResponses {
   def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
   def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponse] = {
 
-    val request = new XmlRpcRequest(methodName, params)
-    val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody request.toXmlString
+    val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody toRequestString(methodName,params)
 
     logger.debug("sending message headers: " + config.headers)
-    logger.debug("sending message body: " +request.toXmlString)
+    logger.debug("sending message body: " +builder.toString)
 
     try{
       Http(builder OK as.String).map((success: String) => {

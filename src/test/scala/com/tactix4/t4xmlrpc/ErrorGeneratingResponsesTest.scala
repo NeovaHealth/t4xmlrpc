@@ -15,19 +15,18 @@ import scalaz.xml.Content
  */
 class ErrorGeneratingResponsesTest extends FunSuite with PropertyChecks with XmlRpcResponses {
 
-  implicit override val generatorDrivenConfig = PropertyCheckConfig(minSuccessful = 1000)
 
   test("All invalid xmlrpc responses should be parsed with errors") {
     forAll(XMLRPCResponseGenerator.arbitraryInValidXmlRpcResponse.arbitrary) {
       (node: List[Content]) => createXmlRpcResponse(node).fold(
         _ => fail("Normal Responses recognised as a fault"),
-        (normal: XmlRpcResponseNormal) => if (normal.errors.isEmpty && !node.isEmpty) fail("Errors were not generated for input: " + (node.head sxprints pretty)))
+        (normal: XmlRpcResponseNormal) => if (normal.params.isRight && !node.isEmpty) fail("Errors were not generated for input: " + (node.head sxprints pretty)))
     }
   }
   test("All invalid xmlrpc faults should be parsed with errors") {
     forAll(XMLRPCResponseGenerator.arbitraryInValidXmlRpcFault.arbitrary) {
       (node: List[Content]) => createXmlRpcResponse(node).fold(
-        (fault: XmlRpcResponseFault) =>  if (fault.errors.isEmpty && !node.isEmpty) fail("Errors were not generated for input: " + (node.head sxprints pretty)),
+        (fault: XmlRpcResponseFault) =>  if ((fault.faultCode.isRight && fault.faultString.isRight)  && !node.isEmpty) fail("Errors were not generated for input: " + (node.head sxprints pretty)),
         _ => fail("Fault recognised as a Normal response")
       )
     }

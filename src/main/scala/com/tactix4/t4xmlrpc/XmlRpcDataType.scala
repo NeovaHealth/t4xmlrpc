@@ -17,8 +17,7 @@
 
 package com.tactix4.t4xmlrpc
 import java.util.Date
-import scala.xml.NodeSeq
-import scalaz.Value
+import scalaz.syntax.std.boolean._
 import java.nio.charset.Charset
 
 
@@ -95,8 +94,8 @@ object XmlWriter {
     case XmlRpcInt(v)         => s"<value><int>$v</int></value>"
     case XmlRpcDouble(d)      => s"<value><double>$d</double></value>"
     case XmlRpcString(s)      => s"<value><string>$s</string></value>"
-    case XmlRpcBoolean(b)     => s"<value><boolean>${if(b) 1 else 0}</boolean></value>"
-    case XmlRpcBase64(b)      => s"<value><base64>${new String(b.value)}</base64></value>"
+    case XmlRpcBoolean(b)     => s"<value><boolean>${b ? 1 | 0}</boolean></value>"
+    case XmlRpcBase64(b)      => s"<value><base64>${new String(b)}</base64></value>"
     case XmlRpcDate(d)        => s"<value><date>${getDateAsISO8601String(d)}</date></value>"
     case XmlRpcArray(a)       => s"<value><array><data>${writeArray(a)}</data></array></value>"
     case XmlRpcStruct(s)      => s"<value><struct>${writeMap(s)}</struct></value>"
