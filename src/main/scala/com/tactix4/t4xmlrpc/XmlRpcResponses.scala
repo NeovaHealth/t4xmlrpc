@@ -23,7 +23,6 @@ import Scalaz._
 import scalaz.xml.{Element, Content}
 import scalaz.xml.Xml._
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import java.util.Date
 
 
 /**
@@ -59,10 +58,8 @@ import java.util.Date
 
 trait XmlRpcResponses extends LazyLogging {
 
-  type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
-
-  type FaultCode = XmlRpcDataType
-
+      val trues = List("true", "1")
+      val falses = List("false", "0")
   /**
    * return the content that contains the methodResponse
    * @param l the list of contents
@@ -91,16 +88,6 @@ trait XmlRpcResponses extends LazyLogging {
       e.toCursor.firstChild.flatMap(_.elem) | e
     }
 
-  sealed abstract class XmlRpcResponseType extends XmlRpcResponses
-
-  final case class XmlRpcResponseFault(faultCode: ResultType[FaultCode], faultString: ResultType[String]) extends XmlRpcResponseType {
-    override def toString: String =
-      s"${faultCode.fold(_.toString,_.toString)} ${faultString.fold(_.toString, _.toString)}"
-  }
-
-  final case class XmlRpcResponseNormal(params: ErrorMessage \/ List[XmlRpcDataType]) extends XmlRpcResponseType {
-    override def toString: String = params.fold(_.toString,_.toString())
-  }
 
 
   object XmlRpcResponseFault {
@@ -167,8 +154,7 @@ trait XmlRpcResponses extends LazyLogging {
 
     def parseBoolean(b: String): ErrorMessage \/ Boolean = {
       val trimmed = b.trim.toLowerCase
-      val trues = List("true", "1")
-      val falses = List("false", "0")
+
       if (trues.exists(_ == trimmed)) \/-(true)
       else if (falses.exists(_ == trimmed)) \/-(false)
       else -\/(s"Could not parse Boolean $b")

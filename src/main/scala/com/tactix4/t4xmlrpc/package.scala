@@ -34,9 +34,20 @@ package object t4xmlrpc{
   date.setTimeZone(TimeZone.getTimeZone("UTC"))
   date.setLenient(true)
 
+
+  type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
+
+  final case class XmlRpcResponseFault(faultCode: ResultType[FaultCode], faultString: ResultType[String]) {
+    override def toString: String =
+      s"${faultCode.fold(_.toString,_.toString)} ${faultString.fold(_.toString, _.toString)}"
+  }
+
+  final case class XmlRpcResponseNormal(params: ErrorMessage \/ List[XmlRpcDataType]) {
+    override def toString: String = params.fold(_.toString,_.toString())
+  }
+
   type ErrorMessage = String
   type FaultCode = XmlRpcDataType
-
   type ResultType[+A] = ErrorMessage \/ A
 
   /** format date in ISO 8601 format taking into account timezone
