@@ -30,10 +30,13 @@ import scalaz.\/
  */
 package object t4xmlrpc{
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  implicit val futureMonad = scalaz.std.scalaFuture.futureInstance
+
   val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
   date.setTimeZone(TimeZone.getTimeZone("UTC"))
   date.setLenient(true)
-
 
   type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
 
@@ -42,7 +45,7 @@ package object t4xmlrpc{
       s"${faultCode.fold(_.toString,_.toString)} ${faultString.fold(_.toString, _.toString)}"
   }
 
-  final case class XmlRpcResponseNormal(params: ErrorMessage \/ List[XmlRpcDataType]) {
+  final case class XmlRpcResponseNormal(params: ResultType[List[XmlRpcDataType]]) {
     override def toString: String = params.fold(_.toString,_.toString())
   }
 
@@ -60,8 +63,6 @@ package object t4xmlrpc{
     val t = date.format(value)
     date.format(date.parse(t))
   }
-
-
 
   /**
    * parse string into an ISO 8601 date object

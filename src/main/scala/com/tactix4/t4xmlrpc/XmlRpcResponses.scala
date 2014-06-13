@@ -96,7 +96,7 @@ trait XmlRpcResponses extends LazyLogging {
       new XmlRpcResponseFault(getFaultCode(c), getFaultString(c))
     }
 
-    def getValue(oc: Option[Content], s: String): ErrorMessage \/ Element = {
+    def getValue(oc: Option[Content], s: String): ResultType[Element] = {
       val value = for {
         c <- oc
         fc <- c.toCursor.findRec(_.current.elem exists (_.strContent.mkString == s))
@@ -115,7 +115,7 @@ trait XmlRpcResponses extends LazyLogging {
      * @param c
      * @return
      */
-    def getFaultCode(c: Option[Content]): ErrorMessage \/ FaultCode = {
+    def getFaultCode(c: Option[Content]): ResultType[FaultCode] = {
       getValue(c, "faultCode").flatMap(element2XmlDataType)
     }
 
@@ -123,7 +123,7 @@ trait XmlRpcResponses extends LazyLogging {
      * grab the value from the faultCode <value> element and parse as an int if labeled as such
      * otherwise parse as a string
      */
-    def getFaultString(c: Option[Content]): ErrorMessage \/ String = {
+    def getFaultString(c: Option[Content]): ResultType[String] = {
       getValue(c, "faultString").map(e => getSubElementIfExists(e).strContent.mkString)
     }
   }
@@ -138,7 +138,7 @@ trait XmlRpcResponses extends LazyLogging {
   }
 
 
-  def getParams(co: Option[Content]): ErrorMessage \/ List[Element] = {
+  def getParams(co: Option[Content]): ResultType[List[Element]] = {
     val ps = for {
       content <- co
       params <- content.toCursor.findChildElementName("params" == _)
@@ -150,17 +150,16 @@ trait XmlRpcResponses extends LazyLogging {
   }
 
 
-  def element2XmlDataType(e: Element): ErrorMessage \/ XmlRpcDataType = {
+  def element2XmlDataType(e: Element): ResultType[XmlRpcDataType] = {
 
-    def parseBoolean(b: String): ErrorMessage \/ Boolean = {
+    def parseBoolean(b: String): ResultType[Boolean] = {
       val trimmed = b.trim.toLowerCase
-
       if (trues.exists(_ == trimmed)) \/-(true)
       else if (falses.exists(_ == trimmed)) \/-(false)
       else -\/(s"Could not parse Boolean $b")
     }
 
-    def memberToTuple(e: Element): ErrorMessage \/ (String, XmlRpcDataType) = {
+    def memberToTuple(e: Element): ResultType[(String, XmlRpcDataType)] = {
       val tuple = for {
         n <- e.toCursor.findChildElementName("name" == _)
         v <- e.toCursor.findChildElementName("value" == _)
