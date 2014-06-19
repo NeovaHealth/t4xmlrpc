@@ -53,26 +53,26 @@ class XmlRpcClient(e: Option[Executor] = None) extends LazyLogging with XmlRpcRe
    * @param params the list of parameters to supply to the method
    * @return a Future[XmlRpcResponse]
    */
-  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponseFault\/XmlRpcResponseNormal] = request(config, methodName, params.toList)
-  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponseFault\/XmlRpcResponseNormal] = {
+  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = request(config, methodName, params.toList)
+  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = {
 
     val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody toRequestString(methodName, params)
 
     logger.debug("sending message headers: " + config.headers)
     logger.debug("sending message body: " + builder.toString)
 
-    val result = Http(builder OK as.String).either
-
-    result.flatMap(_.fold(
-      Future.failed,
-      (s: String) => {
-        val xmlResult = s.parseXml
-        logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
-        Future.successful(createXmlRpcResponse(xmlResult))
-      }))
+    EitherT {
+      Http(builder OK as.String).either.flatMap(_.fold(
+        Future.failed,
+        (s: String) => {
+          val xmlResult = s.parseXml
+          logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
+          Future.successful(createXmlRpcResponse(xmlResult))
+        }))
+    }
   }
-
 }
+
 object XmlRpcClient {
   def apply()  = new XmlRpcClient(None)
   def apply(e:Executor) = new XmlRpcClient(Some(e))
