@@ -14,7 +14,7 @@ publishMavenStyle := true
 libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.1.0-M7",
   "org.scalaz" %% "scalaz-xml" % "7.1.0-M7",
-  "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
+  "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
   "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "org.scalacheck" %% "scalacheck" % "1.11.4" % "test",
   "org.scalatest" %% "scalatest" % "2.2.0" % "test",

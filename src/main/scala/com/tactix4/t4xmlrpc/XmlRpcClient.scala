@@ -23,7 +23,10 @@ import java.util.concurrent.{Executor, Executors}
 import dispatch._
 import scalaz.xml.Xml._
 import scalaz.syntax.std.option._
-import scalaz.EitherT
+import scalaz.syntax.std.either._
+import scalaz.syntax.either._
+import scala.util.control.Exception._
+import scalaz.{\/, EitherT}
 
 /**
  * Main object of the library
@@ -50,26 +53,25 @@ class XmlRpcClient(e: Option[Executor] = None) extends LazyLogging with XmlRpcRe
    * @param params the list of parameters to supply to the method
    * @return a Future[XmlRpcResponse]
    */
-  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = request(config, methodName, params.toList)
-  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = {
+  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponseFault\/XmlRpcResponseNormal] = request(config, methodName, params.toList)
+  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponseFault\/XmlRpcResponseNormal] = {
 
-    val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody toRequestString(methodName,params)
+    val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody toRequestString(methodName, params)
 
     logger.debug("sending message headers: " + config.headers)
-    logger.debug("sending message body: " +builder.toString)
+    logger.debug("sending message body: " + builder.toString)
 
-    EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] {
-      try {
-        Http(builder OK as.String).map((success: String) => {
-          val xmlResult = success.parseXml
-          logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
-          createXmlRpcResponse(xmlResult)
-        })
-      } catch {
-        case e:Throwable => Future.failed(e)
-      }
-    }
+    val result = Http(builder OK as.String).either
+
+    result.flatMap(_.fold(
+      Future.failed,
+      (s: String) => {
+        val xmlResult = s.parseXml
+        logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
+        Future.successful(createXmlRpcResponse(xmlResult))
+      }))
   }
+
 }
 object XmlRpcClient {
   def apply()  = new XmlRpcClient(None)
