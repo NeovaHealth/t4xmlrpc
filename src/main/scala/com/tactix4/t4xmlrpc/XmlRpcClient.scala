@@ -41,7 +41,7 @@ class XmlRpcClient(e: Option[Executor] = None) extends LazyLogging with XmlRpcRe
 
   def outputParams(ps: List[XmlRpcDataType]): String = ps.map(d => s"<param>${XmlWriter.write(d)}</param>").mkString
 
-  def toRequestString(name:String, params:List[XmlRpcDataType]) : String =
+  def toRequestBody(name:String, params:List[XmlRpcDataType]) : String =
     s"<?xml version='1.0'?><methodCall>" +
     s"<methodName>$name</methodName>" +
     s"<params>${outputParams(params)}</params></methodCall>"
@@ -56,10 +56,12 @@ class XmlRpcClient(e: Option[Executor] = None) extends LazyLogging with XmlRpcRe
   def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = request(config, methodName, params.toList)
   def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = {
 
-    val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody toRequestString(methodName, params)
+    val body = toRequestBody(methodName, params)
+    
+    val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody body
 
     logger.debug("sending message headers: " + config.headers)
-    logger.debug("sending message body: " + builder.toString)
+    logger.debug("sending message body: " + body)
 
     EitherT {
       Http(builder OK as.String).either.flatMap(_.fold(
