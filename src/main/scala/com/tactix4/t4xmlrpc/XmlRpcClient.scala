@@ -19,14 +19,9 @@ package com.tactix4.t4xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext}
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import java.util.concurrent.{Executor, Executors}
 import dispatch._
 import scalaz.xml.Xml._
-import scalaz.syntax.std.option._
-import scalaz.syntax.std.either._
-import scalaz.syntax.either._
-import scala.util.control.Exception._
-import scalaz.{\/, EitherT}
+import scalaz.EitherT
 
 /**
  * Main object of the library
@@ -34,10 +29,7 @@ import scalaz.{\/, EitherT}
  * Created by max@tactix4.com
  * 5/21/13
  */
-class XmlRpcClient(e: Option[Executor] = None) extends LazyLogging with XmlRpcResponses {
-
-  implicit val ec : ExecutionContext = e.map(ExecutionContext.fromExecutor) | ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
-
+class XmlRpcClient(implicit val ec: ExecutionContext) extends LazyLogging with XmlRpcResponses {
 
   def outputParams(ps: List[XmlRpcDataType]): String = ps.map(d => s"<param>${XmlWriter.write(d)}</param>").mkString
 
@@ -74,8 +66,7 @@ class XmlRpcClient(e: Option[Executor] = None) extends LazyLogging with XmlRpcRe
     }
   }
 }
-
 object XmlRpcClient {
-  def apply()  = new XmlRpcClient(None)
-  def apply(e:Executor) = new XmlRpcClient(Some(e))
+  java.util.concurrent.Executors.newSingleThreadExecutor()
+  def apply(implicit ec:ExecutionContext)  = new XmlRpcClient()(ec)
 }

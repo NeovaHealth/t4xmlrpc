@@ -58,8 +58,8 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
 
 trait XmlRpcResponses extends LazyLogging {
 
-      val trues = List("true", "1")
-      val falses = List("false", "0")
+      val trues = Set("true", "1")
+      val falses = Set("false", "0")
   /**
    * return the content that contains the methodResponse
    * @param l the list of contents
@@ -154,8 +154,8 @@ trait XmlRpcResponses extends LazyLogging {
 
     def parseBoolean(b: String): ResultType[Boolean] = {
       val trimmed = b.trim.toLowerCase
-      if (trues.exists(_ == trimmed)) \/-(true)
-      else if (falses.exists(_ == trimmed)) \/-(false)
+      if (trues.contains(trimmed)) \/-(true)
+      else if (falses.contains(trimmed)) \/-(false)
       else -\/(s"Could not parse Boolean $b")
     }
 
@@ -183,7 +183,7 @@ trait XmlRpcResponses extends LazyLogging {
       case "date" => getDateFromISO8601String(content).map(XmlRpcDate)
       case "array" => {
         val a = value.children.headOption.map(_.children.map(element2XmlDataType)) | Nil
-        a.sequence[ResultType,XmlRpcDataType].map(XmlRpcArray)
+        a.sequence[ResultType,XmlRpcDataType].map(XmlRpcArray(_))
       }
       case "struct" =>  value.children.map(memberToTuple).sequence[ResultType,(String,XmlRpcDataType)].map(l => XmlRpcStruct(l.toMap))
       case "base64" => \/-(XmlRpcBase64(content.getBytes("UTF-8")))

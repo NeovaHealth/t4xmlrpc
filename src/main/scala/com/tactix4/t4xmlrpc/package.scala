@@ -18,10 +18,11 @@
 package com.tactix4
 
 import java.util.{TimeZone, Date}
+import scala.concurrent.ExecutionContext
 import scala.language.implicitConversions
+import scala.util.control.Exception._
 import java.text.SimpleDateFormat
 import scalaz.syntax.std.either._
-import scala.util.control.Exception._
 import scalaz.\/
 
 /**
@@ -30,15 +31,18 @@ import scalaz.\/
  */
 package object t4xmlrpc{
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  type ErrorMessage = String
+  type FaultCode = XmlRpcDataType
+  type ResultType[+A] = ErrorMessage \/ A
+  type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
 
-  implicit val futureMonad = scalaz.std.scalaFuture.futureInstance
+  //pull in the futureMonad when we have
+  implicit def futureMonad(implicit e:ExecutionContext) = scalaz.std.scalaFuture.futureInstance(e)
 
   val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
   date.setTimeZone(TimeZone.getTimeZone("UTC"))
   date.setLenient(true)
 
-  type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
 
   final case class XmlRpcResponseFault(faultCode: ResultType[FaultCode], faultString: ResultType[String]) {
     override def toString: String =
@@ -49,9 +53,7 @@ package object t4xmlrpc{
     override def toString: String = params.fold(_.toString,_.toString())
   }
 
-  type ErrorMessage = String
-  type FaultCode = XmlRpcDataType
-  type ResultType[+A] = ErrorMessage \/ A
+
 
   /** format date in ISO 8601 format taking into account timezone
     * http://stackoverflow.com/questions/3914404/how-to-get-current-moment-in-iso-8601-format
@@ -71,7 +73,7 @@ package object t4xmlrpc{
    * @return date object representing the date
    * @throws XmlRpcParseException if string cannot be parsed
    */
-  def getDateFromISO8601String(value: String): ErrorMessage \/ Date = {
+  def getDateFromISO8601String(value: String): ResultType[Date] = {
       (allCatch either date.parse(value)).disjunction.bimap(_.getMessage, d => d)
   }
 

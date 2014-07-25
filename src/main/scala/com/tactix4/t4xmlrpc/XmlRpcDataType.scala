@@ -17,14 +17,14 @@
 
 package com.tactix4.t4xmlrpc
 import java.util.Date
+import scalaz.Monoid
 import scalaz.syntax.std.boolean._
-import java.nio.charset.Charset
 
 
 /**
  * Hierarchy of all XML-RPC types
  */
-sealed trait XmlRpcDataType{
+sealed trait XmlRpcDataType {
 
   override def toString: String ={
     fold(
@@ -130,3 +130,21 @@ case class XmlRpcBase64(value: Array[Byte]) extends XmlRpcDataType
 case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType
 case class XmlRpcStruct(value: Map[String, XmlRpcDataType]) extends XmlRpcDataType
 
+
+object XmlRpcArray{
+  def apply(l:XmlRpcDataType*) : XmlRpcArray = new XmlRpcArray(l.toList)
+
+  implicit val monoidInstance = new Monoid[XmlRpcArray]{
+    override def zero: XmlRpcArray = XmlRpcArray()
+    override def append(f1: XmlRpcArray, f2: => XmlRpcArray): XmlRpcArray = XmlRpcArray(f1.value ++ f2.value)
+  }
+
+}
+object XmlRpcStruct{
+  def apply(l:(String,XmlRpcDataType)*) : XmlRpcStruct = new XmlRpcStruct(l.toMap)
+
+  implicit val monoidInstance = new Monoid[XmlRpcStruct]{
+    override def zero: XmlRpcStruct = XmlRpcStruct()
+    override def append(f1: XmlRpcStruct, f2: => XmlRpcStruct): XmlRpcStruct = XmlRpcStruct(f1.value ++ f2.value)
+  }
+}
