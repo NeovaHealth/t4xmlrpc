@@ -28,14 +28,8 @@ package com.tactix4.t4xmlrpc
  * @author max@tactix4.com
  * 5/21/13
  */
-class XmlRpcConfig (val protocol :String, val host: String, val port: Int,  var path: String,var headers: Map[String, String]){
-  def getUrl : String = protocol + "://" + host + ":" + port + path
+case class XmlRpcConfig (protocol :String, host: String, port: Int, path: String, headers: Map[String, String] = Map()){
+  override val toString:String = protocol + "://" + host + ":" + port + path
 
 }
 
-object XmlRpcConfig{
-
-  def apply(protocol: String, host: String, port: Int,path: String,headers: Map[String, String]=Map()) = {
-      new XmlRpcConfig(protocol,host,port,path,headers)
-  }
-}

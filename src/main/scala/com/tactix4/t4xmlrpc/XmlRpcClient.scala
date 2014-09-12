@@ -18,11 +18,11 @@
 package com.tactix4.t4xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext}
-import com.typesafe.scalalogging.slf4j.Logging
-import java.util.concurrent.Executors
+import scala.concurrent.ExecutionContext.Implicits.global
+import com.typesafe.scalalogging.LazyLogging
 import dispatch._
 import scalaz.xml.Xml._
-import scala.util.control.Exception.allCatch
+import scalaz.EitherT
 
 /**
  * Main object of the library
@@ -30,9 +30,14 @@ import scala.util.control.Exception.allCatch
  * Created by max@tactix4.com
  * 5/21/13
  */
-object XmlRpcClient extends Logging with XmlRpcResponses {
+class XmlRpcClient(implicit val ec: ExecutionContext) extends LazyLogging with XmlRpcResponses {
 
-  implicit val ec : ExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
+  def outputParams(ps: List[XmlRpcDataType]): String = ps.map(d => s"<param>${XmlWriter.write(d)}</param>").mkString
+
+  def toRequestBody(name:String, params:List[XmlRpcDataType]) : String =
+    s"<?xml version='1.0'?><methodCall>" +
+    s"<methodName>$name</methodName>" +
+    s"<params>${outputParams(params)}</params></methodCall>"
 
   /**
    * Send an XML-RPC request
@@ -41,23 +46,27 @@ object XmlRpcClient extends Logging with XmlRpcResponses {
    * @param params the list of parameters to supply to the method
    * @return a Future[XmlRpcResponse]
    */
-  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): Future[XmlRpcResponse] = request(config, methodName, params.toList)
-  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): Future[XmlRpcResponse] = {
+  def request(config: XmlRpcConfig, methodName: String, params: XmlRpcDataType*): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = request(config, methodName, params.toList)
+  def request(config: XmlRpcConfig, methodName: String, params: List[XmlRpcDataType]): EitherT[Future,XmlRpcResponseFault,XmlRpcResponseNormal] = {
 
-    val request = new XmlRpcRequest(methodName, params)
-    val builder = url(config.getUrl) <:< Map("Content-Type" -> "text/xml") << config.headers setBody request.toXmlString
+    val body = toRequestBody(methodName, params)
+    
+    val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody body
 
     logger.debug("sending message headers: " + config.headers)
-    logger.debug("sending message body: " +request.toXmlString)
+    logger.debug("sending message body:\n" + body.parseXml.map(_ sxprints pretty).mkString)
 
-    try{
-      Http(builder OK as.String).map((success: String) => {
-          val xmlResult = success.parseXml
-          logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
-          createXmlRpcResponse(xmlResult)
-        })
-    } catch {
-      case e: Throwable => Future.failed(e)
+    EitherT {
+      Http(builder OK as.String).either.flatMap(_.fold(
+        Future.failed,
+        (s: String) => {
+          val xmlResult = s.parseXml
+          logger.debug("received message:\n" + xmlResult.map(_ sxprints pretty).mkString)
+          Future.successful(createXmlRpcResponse(xmlResult))
+        }))
     }
   }
+}
+object XmlRpcClient {
+  def apply()(implicit ec:ExecutionContext)  = new XmlRpcClient()(ec)
 }

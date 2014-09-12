@@ -6,12 +6,15 @@
 
 This library provides a simple and easy to use xml-rpc implementation in scala.
 
-### 2.0 Release ###
+####Changelog####
 
-This version is a significant re-write of the library, written in a pure-functional style, and making
-use of the scalaz library. In keeping with the scalaz.xml philosophy, parsing of inbound xmlrpc data will
-not fail fast, but rather it will interpret everything it can, while accumulating any errors in parsing.
-See the ParseResult case class for further details.
+### 2.0.2 Release ###
+This is a simplification and updating of the 2.0 release, removing custom data structures in favour of existing
+ones and removing the error accumulating feature in favour of a fail-fast approach using scalaz's \/ datatype.
+Also added the ability to provide a java.util.concurrent.Executor to the client, defaulting to a CachedThreadPool.
+Now uses the latest releases from scalaz, dispatch and scalalogging.
+
+
 
 ### Motivation
 
@@ -26,14 +29,17 @@ early as possible and making use of scala 2.10's Futures as well as the scalaz l
 
 ```scala
 
-val config = XmlRpcConfig("http", "localhost", 8888, "/pathToHit")
+import scala.concurrent.ExecutionContext.Implicits.global
 
-val result = XmlRpcClient.request(config, "someMethod", "someParameter")
+val config = new XmlRpcConfig("http", "localhost", 8888, "/pathToHit")
 
-result.map(
-    _.fold(
-        error  => println(s"Got back a fault: $error"),
-        result => println(s"Got back a result: $result")
+val client = new XmlRpcClient()
+
+val result = client.request(config, "someMethod", "someParameter")
+
+result.fold(
+    error  => println(s"Got back a fault: $error"),
+    result => println(s"Got back a result: $result")
     )
 )
 

@@ -17,15 +17,14 @@
 
 package com.tactix4.t4xmlrpc
 import java.util.Date
-import scala.xml.NodeSeq
-import scalaz.Value
-import java.nio.charset.Charset
+import scalaz.Monoid
+import scalaz.syntax.std.boolean._
 
 
 /**
  * Hierarchy of all XML-RPC types
  */
-sealed trait XmlRpcDataType{
+sealed trait XmlRpcDataType {
 
   override def toString: String ={
     fold(
@@ -95,8 +94,8 @@ object XmlWriter {
     case XmlRpcInt(v)         => s"<value><int>$v</int></value>"
     case XmlRpcDouble(d)      => s"<value><double>$d</double></value>"
     case XmlRpcString(s)      => s"<value><string>$s</string></value>"
-    case XmlRpcBoolean(b)     => s"<value><boolean>${if(b) 1 else 0}</boolean></value>"
-    case XmlRpcBase64(b)      => s"<value><base64>${new String(b.value)}</base64></value>"
+    case XmlRpcBoolean(b)     => s"<value><boolean>${b ? 1 | 0}</boolean></value>"
+    case XmlRpcBase64(b)      => s"<value><base64>${new String(b)}</base64></value>"
     case XmlRpcDate(d)        => s"<value><date>${getDateAsISO8601String(d)}</date></value>"
     case XmlRpcArray(a)       => s"<value><array><data>${writeArray(a)}</data></array></value>"
     case XmlRpcStruct(s)      => s"<value><struct>${writeMap(s)}</struct></value>"
@@ -131,3 +130,21 @@ case class XmlRpcBase64(value: Array[Byte]) extends XmlRpcDataType
 case class XmlRpcArray(value: List[XmlRpcDataType]) extends XmlRpcDataType
 case class XmlRpcStruct(value: Map[String, XmlRpcDataType]) extends XmlRpcDataType
 
+
+object XmlRpcArray{
+  def apply(l:XmlRpcDataType*) : XmlRpcArray = new XmlRpcArray(l.toList)
+
+  implicit val monoidInstance = new Monoid[XmlRpcArray]{
+    override def zero: XmlRpcArray = XmlRpcArray()
+    override def append(f1: XmlRpcArray, f2: => XmlRpcArray): XmlRpcArray = XmlRpcArray(f1.value ++ f2.value)
+  }
+
+}
+object XmlRpcStruct{
+  def apply(l:(String,XmlRpcDataType)*) : XmlRpcStruct = new XmlRpcStruct(l.toMap)
+
+  implicit val monoidInstance = new Monoid[XmlRpcStruct]{
+    override def zero: XmlRpcStruct = XmlRpcStruct()
+    override def append(f1: XmlRpcStruct, f2: => XmlRpcStruct): XmlRpcStruct = XmlRpcStruct(f1.value ++ f2.value)
+  }
+}
