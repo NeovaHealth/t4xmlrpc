@@ -18,7 +18,6 @@
 package com.tactix4.t4xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext}
-import scala.concurrent.ExecutionContext.Implicits.global
 import com.typesafe.scalalogging.LazyLogging
 import dispatch._
 import scalaz.xml.Xml._
