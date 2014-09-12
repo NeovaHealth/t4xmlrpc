@@ -17,12 +17,13 @@
 
 package com.tactix4.t4xmlrpc
 
+import com.typesafe.scalalogging.slf4j.LazyLogging
+
 import scala.language.postfixOps
 import scalaz._
 import Scalaz._
 import scalaz.xml.{Element, Content}
 import scalaz.xml.Xml._
-import com.typesafe.scalalogging.LazyLogging
 
 
 /**
