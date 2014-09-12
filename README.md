@@ -6,11 +6,14 @@
 
 This library provides a simple and easy to use xml-rpc implementation in scala.
 
-### 2.1-SNAPSHOT Release ###
+####Changelog####
 
+### 2.0.2 Release ###
 This is a simplification and updating of the 2.0 release, removing custom data structures in favour of existing
 ones and removing the error accumulating feature in favour of a fail-fast approach using scalaz's \/ datatype.
 Also added the ability to provide a java.util.concurrent.Executor to the client, defaulting to a CachedThreadPool.
+Now uses the latest releases from scalaz, dispatch and scalalogging.
+
 
 
 ### Motivation
