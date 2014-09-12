@@ -29,16 +29,17 @@ early as possible and making use of scala 2.10's Futures as well as the scalaz l
 
 ```scala
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 val config = new XmlRpcConfig("http", "localhost", 8888, "/pathToHit")
 
-val client = new XmlRpcClient(Some(Executors.newSingleThreadExecutor()))
+val client = new XmlRpcClient()
 
 val result = client.request(config, "someMethod", "someParameter")
 
-result.map(
-    _.fold(
-        error  => println(s"Got back a fault: $error"),
-        result => println(s"Got back a result: $result")
+result.fold(
+    error  => println(s"Got back a fault: $error"),
+    result => println(s"Got back a result: $result")
     )
 )
 
