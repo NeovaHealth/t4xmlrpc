@@ -36,9 +36,6 @@ package object t4xmlrpc{
   type ResultType[+A] = ErrorMessage \/ A
   type XmlRpcResponse = XmlRpcResponseFault \/ XmlRpcResponseNormal
 
-  //pull in the futureMonad when we have
-  implicit def futureMonad(implicit e:ExecutionContext) = scalaz.std.scalaFuture.futureInstance(e)
-
   val date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
   date.setTimeZone(TimeZone.getTimeZone("UTC"))
   date.setLenient(true)

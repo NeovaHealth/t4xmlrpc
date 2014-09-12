@@ -18,7 +18,8 @@
 package com.tactix4.t4xmlrpc
 
 import scala.concurrent.{Future, ExecutionContext}
-import com.typesafe.scalalogging.slf4j.LazyLogging
+import scala.concurrent.ExecutionContext.Implicits.global
+import com.typesafe.scalalogging.LazyLogging
 import dispatch._
 import scalaz.xml.Xml._
 import scalaz.EitherT
@@ -53,20 +54,19 @@ class XmlRpcClient(implicit val ec: ExecutionContext) extends LazyLogging with X
     val builder = url(config.toString) <:< Map("Content-Type" -> "text/xml") << config.headers setBody body
 
     logger.debug("sending message headers: " + config.headers)
-    logger.debug("sending message body: " + body)
+    logger.debug("sending message body:\n" + body.parseXml.map(_ sxprints pretty).mkString)
 
     EitherT {
       Http(builder OK as.String).either.flatMap(_.fold(
         Future.failed,
         (s: String) => {
           val xmlResult = s.parseXml
-          logger.debug("received message" + xmlResult.map(_ sxprints pretty).mkString)
+          logger.debug("received message:\n" + xmlResult.map(_ sxprints pretty).mkString)
           Future.successful(createXmlRpcResponse(xmlResult))
         }))
     }
   }
 }
 object XmlRpcClient {
-  java.util.concurrent.Executors.newSingleThreadExecutor()
-  def apply(implicit ec:ExecutionContext)  = new XmlRpcClient()(ec)
+  def apply()(implicit ec:ExecutionContext)  = new XmlRpcClient()(ec)
 }
