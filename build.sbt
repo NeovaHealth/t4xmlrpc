@@ -7,7 +7,7 @@ organization := "com.tactix4"
 
 version := "2.0.2"
 
-scalaVersion := "2.11.2"
+crossScalaVersions := Seq("2.10.4", "2.11.2")
 
 publishMavenStyle := true
 
@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.1.0",
   "org.scalaz" %% "scalaz-xml" % "7.1.0",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.2",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
+  "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "org.scalacheck" %% "scalacheck" % "1.11.4" % "test",
   "org.scalatest" %% "scalatest" % "2.2.0" % "test",
   "ch.qos.logback" % "logback-classic" % "1.0.9" % "test"

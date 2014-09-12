@@ -17,12 +17,12 @@
 
 package com.tactix4.t4xmlrpc
 
+import com.typesafe.scalalogging.slf4j.LazyLogging
+
 import scala.concurrent.{Future, ExecutionContext}
-import com.typesafe.scalalogging.LazyLogging
 import dispatch._
 import scalaz.xml.Xml._
 import scalaz.EitherT
-
 /**
  * Main object of the library
  *
