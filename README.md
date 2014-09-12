@@ -4,7 +4,7 @@
 
 ***
 
-This library provides a simple and easy to use xml-rpc implementation in scala.
+This library provides a simple and easy to use xml-rpc implementation in scala. It supported scala 2.10 and 2.11.
 
 ####Changelog####
 
@@ -42,6 +42,17 @@ result.fold(
     result => println(s"Got back a result: $result")
     )
 )
+
+```
+## SBT Settings
+
+Just add t4xmlrpc as a dependency to your build file:
+
+Stable:
+
+```scala 
+
+"com.tactix4" %% "t4xmlrpc" % "2.0.2"
 
 ```
 
