@@ -1,6 +1,6 @@
 
 # Tactix4 XML-RPC
-[![Build Status](https://travis-ci.org/Tactix4/t4xmlrpc.svg?branch=develop)](https://travis-ci.org/Tactix4/t4xmlrpc)
+[![Build Status](https://travis-ci.org/neovahealth/t4xmlrpc.svg?branch=develop)](https://travis-ci.org/neovahealth/t4xmlrpc)
 
 ***
 
